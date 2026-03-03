@@ -1,3 +1,4 @@
+
 #META-INFO
 #R SCRIPT: CALPADS UPC GRADES K-12, 2018-19 PREP
 #WEBPAGE WITH DATA FILE: https://www.cde.ca.gov/ds/ad/filescupc.asp
@@ -23,8 +24,9 @@ library(cdetidy)
 
 # Step 2. Read in latest CDS data #### 
 ## 1819 is the year, 912 is the grade span (9-12)
-setwd("T:/CDE data releases/Enrollment Data/CALPADS UPC Grades K-12/2018-19")
-cupc_1819_k12 <- readxl::read_excel("cupc1819-k12.xlsx", sheet = "LEA-Level CALPADS UPC Data")
+#~ setwd("T:/CDE data releases/Enrollment Data/CALPADS UPC Grades K-12/2018-19")
+setwd("/Users/merarisantana/Desktop/OCDE/CALPADS_K-12/data/raw") #!
+cupc_1819_k12 <- readxl::read_excel("cupc1819-k12.xlsx", sheet = "LEA-Level CALPADS UPC Data", skip = 1)
 
 #checking data types for all variables and looking through data
 str(cupc_1819_k12)
@@ -272,7 +274,8 @@ view(cupc_1819_k12)
 ## Step 6.1: Flat csv file ####
 ## we want this version that is less messy for REDI staff and other folks who want to work with data 
 ## but are not going to be doing visualizations
-fwrite(cupc_1819_k12, "T:/CDE data releases/Enrollment Data/CALPADS UPC Grades K-12/2018-19/cupc_k12_LEA_19_clean.csv")
+#~ fwrite(cupc_1819_k12, "T:/CDE data releases/Enrollment Data/CALPADS UPC Grades K-12/2018-19/cupc_k12_LEA_19_clean.csv")
+fwrite(cupc_1819_k12, "/Users/merarisantana/Desktop/OCDE/CALPADS_K-12/data/processed/cupc_k12_LEA_19_clean.csv")
 
 ## Step 6.2: Fact file and entities dim ####
 ### a fact file is a version of our original dataset that we will send to the OCDE server, so we need this to 
