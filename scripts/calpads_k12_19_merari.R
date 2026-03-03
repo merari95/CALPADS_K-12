@@ -725,9 +725,7 @@ view(cupc_1819_k12_school)
 ## but are not going to be doing visualizations
 #~ fwrite(cupc_1819_k12_school, "T:/CDE data releases/Enrollment Data/CALPADS UPC Grades K-12/2018-19/cupc_k12_school_19_clean.csv")
 fwrite(cupc_1819_k12_school, "/Users/merarisantana/Desktop/OCDE/CALPADS_K-12/data/processed/cupc_k12_school_19_clean.csv")
-#? in 'low_grade' column: why hasnt K  changed to '14', P to 15 ;  'high_grade' column: why hasn't 'Adult' changed to 14 
-#? ^this issue remains for other columns too, like 'ed_option_type', they are still not completely just numbers
-#? ^ i am noticing this pattern for LEA clean dataset too
+
 
 ## Step 6.2: Fact file and entities dim ####
 ### a fact file is a version of our original dataset that we will send to the OCDE server, so we need this to 
