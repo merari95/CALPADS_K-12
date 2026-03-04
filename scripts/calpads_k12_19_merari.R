@@ -705,6 +705,7 @@ cupc_1819_k12_school <- cupc_1819_k12_school %>%
 table(cupc_1819_k12_school$calpads_fall1_cert, cupc_1819_k12_school$calpads_fall1_cert_num)
 str(cupc_1819_k12_school$calpads_fall1_cert_num)
 
+#LEFT OFF HERE MERARI!!!!!
 #changing year from character year to two digit numeric
 cupc_1819_k12_school <- cupc_1819_k12_school %>%
   mutate(year = case_when(

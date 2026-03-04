@@ -111,9 +111,10 @@ read_cupc_k12_step2 <- function(start_year,
   df
 }
 
-#t raw_dir <- "/Users/merarisantana/Desktop/OCDE/CALPADS_K-12/data/raw"
-#t cupc_1819_lea <- read_cupc_k12_step2(2018, level="LEA", raw_dir=raw_dir)
-#t cupc_1819_school <- read_cupc_k12_step2(2018, level="School", raw_dir=raw_dir)
+#t Example Usage:
+raw_dir <- "/Users/merarisantana/Desktop/OCDE/CALPADS_K-12/data/raw"
+cupc_1819_lea <- read_cupc_k12_step2(2018, level="LEA", raw_dir=raw_dir)
+cupc_1819_school <- read_cupc_k12_step2(2018, level="School", raw_dir=raw_dir)
 
 
 
@@ -198,10 +199,263 @@ cupc_k12_step4_types <- function(df,
   )
 }
 
+#t Example usage:
+step4_out <- cupc_k12_step4_types(cupc_1819_lea) # this stores the entire output
+#t cupc_1819_lea_step4 <- step4_out$df # this extracts the cleaned dataframe
+#t suppression_cols <- step4_out$suppression_cols #this extracts the suppression columns, if any
 
-#t step4_out <- cupc_k12_step4_types(cupc_1819_lea)
-
-#t cupc_1819_lea_step4 <- step4_out$df
-#t suppression_cols <- step4_out$suppression_cols
 
 
+# Step 4.2 function: create numeric/dummy versions of selected categorical fields
+# - Skips gracefully if a column doesn't exist in a given year
+# - Logs what was recoded vs skipped
+# - Optional validate=TRUE prints cross-tabs for any created columns
+
+
+# Helper: only apply a mutate block if a source column exists
+# verbose is a logical argument (TRUE/FALSE) that controls whether 
+# the function prints messages about what it’s doing.
+mutate_if_exists <- function(df, colname, fn, verbose = TRUE) {
+  
+  # Check that the input 'df' is actually a data frame.
+  # If it is not, stop execution and return an error message.
+  if (!is.data.frame(df)) stop("df must be a data.frame")
+  
+  # Check if the column name we want to modify exists in the dataframe.
+  if (colname %in% names(df)) {
+    
+    # If verbose = TRUE, print a message in the console telling us
+    # which column is currently being recoded.
+    if (isTRUE(verbose)) message("Recoding: ", colname)
+    
+    # Run the function passed in as 'fn' on the dataframe.
+    # 'fn' will usually contain a mutate() block that transforms the column.
+    # The result of fn(df) should be a modified dataframe.
+    fn(df)
+  } else {
+    
+    # If the column does NOT exist in the dataframe,
+    # print a message saying it is being skipped.
+    if (isTRUE(verbose)) message("Skipping missing column: ", colname)
+    
+    # Return the dataframe unchanged.
+    df
+  }
+}
+
+
+#- Optional validate=TRUE prints BEFORE + AFTER tables + str() (like original script)
+# New helper to match original script validation (table BEFORE + table AFTER + str)
+validate_recode <- function(df, orig, coded) {
+  # only run if both columns exist
+  if (!all(c(orig, coded) %in% names(df))) return(invisible(NULL))
+  
+  message("\n--- Validation: ", orig, " -> ", coded, " ---")
+  
+  # BEFORE: category counts (matches first table() call)
+  print(table(df[[orig]], useNA = "ifany"))
+  
+  # AFTER: cross-tab of original vs coded (matchessecond table() call)
+  print(table(df[[orig]], df[[coded]], useNA = "ifany"))
+  
+  # structure check (matches your str() call)
+  str(df[[coded]])
+}
+
+# validate: whether to print validation tables at the end
+# 'L' guarantees the output type is integer type (and not a type double)
+cupc_k12_school_step4_2_dummies <- function(df, validate = FALSE, verbose = TRUE) {
+  stopifnot(is.data.frame(df))
+  
+  # helper: replace literal "N/A" with NA after coercing to character
+  naize <- function(x) dplyr::na_if(as.character(x), "N/A")
+  
+  # ---- charter -> charter_dummy
+  df <- mutate_if_exists(df, "charter", function(d) {
+    d %>%
+      mutate(
+        charter = naize(charter),
+        charter_dummy = case_when(
+          charter == "Yes" ~ 1L,
+          charter == "No"  ~ 0L,
+          TRUE             ~ NA_integer_
+        )
+      )
+  }, verbose = verbose)
+  
+  # ---- school_type -> school_type_num
+  df <- mutate_if_exists(df, "school_type", function(d) {
+    d %>%
+      mutate(
+        school_type = naize(school_type),
+        school_type_num = case_when(
+          school_type == "Alternative Schools of Choice" ~ 1L,
+          school_type == "Continuation High Schools" ~ 2L,
+          school_type == "County Community" ~ 3L,
+          school_type == "District Community Day Schools" ~ 4L,
+          school_type == "Elemen Schools In 1 School Dist. (Public)" ~ 5L,
+          school_type == "Elementary Schools (Public)" ~ 6L,
+          school_type == "High Schools (Public)" ~ 7L,
+          school_type == "High Schools In 1 School Dist. (Public)" ~ 8L,
+          school_type == "Intermediate/Middle Schools (Public)" ~ 9L,
+          school_type == "Junior High Schools (Public)" ~ 10L,
+          school_type == "Juvenile Court Schools" ~ 11L,
+          school_type == "K-12 Schools (Public)" ~ 12L,
+          school_type == "Opportunity Schools" ~ 13L,
+          school_type == "Special Education Schools (Public)" ~ 14L,
+          school_type == "Preschool" ~ 15L,
+          TRUE ~ NA_integer_
+        )
+      )
+  }, verbose = verbose)
+  
+  # ---- ed_option_type -> ed_option_type_num
+  df <- mutate_if_exists(df, "ed_option_type", function(d) {
+    d %>%
+      mutate(
+        ed_option_type = naize(ed_option_type),
+        ed_option_type_num = case_when(
+          ed_option_type == "Alternative School of Choice" ~ 1L,
+          ed_option_type == "Community Day School" ~ 2L,
+          ed_option_type == "Continuation School" ~ 3L,
+          ed_option_type == "County Community School" ~ 4L,
+          ed_option_type == "District Special Education Consortia School" ~ 5L,
+          ed_option_type == "Home and Hospital" ~ 6L,
+          ed_option_type == "Juvenile Court School" ~ 7L,
+          ed_option_type == "Opportunity School" ~ 8L,
+          ed_option_type == "Special Education School" ~ 9L,
+          ed_option_type == "Traditional" ~ 10L,
+          TRUE ~ NA_integer_
+        )
+      )
+  }, verbose = verbose)
+  
+  # ---- nslp_status -> nslp_status_num (may be missing in later years)
+  df <- mutate_if_exists(df, "nslp_status", function(d) {
+    d %>%
+      mutate(
+        nslp_status = naize(nslp_status),
+        nslp_status_num = case_when(
+          nslp_status == "Breakfast Provision 2" ~ 1L,
+          nslp_status == "CEP" ~ 2L,
+          nslp_status == "Lunch Provision 2" ~ 3L,
+          nslp_status == "Provision 1" ~ 4L,
+          nslp_status == "Provision 2" ~ 5L,
+          nslp_status == "Provision 3" ~ 6L,
+          TRUE ~ NA_integer_
+        )
+      )
+  }, verbose = verbose)
+  
+  # ---- charter_funding -> charter_funding_num
+  df <- mutate_if_exists(df, "charter_funding", function(d) {
+    d %>%
+      mutate(
+        charter_funding = naize(charter_funding),
+        charter_funding_num = case_when(
+          charter_funding == "Directly funded" ~ 1L,
+          charter_funding == "Locally funded" ~ 2L,
+          TRUE ~ NA_integer_
+        )
+      )
+  }, verbose = verbose)
+  
+  # ---- irc -> irc_num
+  df <- mutate_if_exists(df, "irc", function(d) {
+    d %>%
+      mutate(
+        irc = naize(irc),
+        irc_num = case_when(
+          irc == "N" ~ 0L,
+          irc == "Y" ~ 1L,
+          TRUE ~ NA_integer_
+        )
+      )
+  }, verbose = verbose)
+  
+  # ---- low_grade -> low_grade_num
+  df <- mutate_if_exists(df, "low_grade", function(d) {
+    d %>%
+      mutate(
+        low_grade = naize(low_grade),
+        low_grade_num = case_when(
+          low_grade %in% as.character(1:12) ~ suppressWarnings(as.integer(low_grade)),
+          low_grade == "Adult" ~ 13L,
+          low_grade == "K" ~ 14L,
+          low_grade == "P" ~ 15L,
+          TRUE ~ NA_integer_
+        )
+      )
+  }, verbose = verbose)
+  
+  # ---- high_grade -> high_grade_num
+  df <- mutate_if_exists(df, "high_grade", function(d) {
+    d %>%
+      mutate(
+        high_grade = naize(high_grade),
+        high_grade_num = case_when(
+          high_grade %in% as.character(1:13) ~ suppressWarnings(as.integer(high_grade)),
+          high_grade == "Adult" ~ 14L,
+          high_grade == "Post-Secondary" ~ 15L,
+          high_grade == "K" ~ 16L,
+          high_grade == "P" ~ 17L,
+          TRUE ~ NA_integer_
+        )
+      )
+  }, verbose = verbose)
+  
+  # ---- calpads_fall1_cert -> calpads_fall1_cert_num
+  df <- mutate_if_exists(df, "calpads_fall1_cert", function(d) {
+    d %>%
+      mutate(
+        calpads_fall1_cert_num = case_when(
+          as.character(calpads_fall1_cert) ==
+            "In Expected List But We Do Not Have Data For This School/LEA" ~ 0L,
+          as.character(calpads_fall1_cert) == "Y" ~ 1L,
+          TRUE ~ NA_integer_
+        )
+      )
+  }, verbose = verbose)
+  
+
+  # ---- Ensure any created *_num / *_dummy columns are integers
+  # uses intersect() because only checks columns that were created (and 
+  # ignores columns not in dataset)
+  created_cols <- intersect(
+    c(
+      "charter_dummy", "school_type_num", "ed_option_type_num", "nslp_status_num",
+      "charter_funding_num", "irc_num", "low_grade_num", "high_grade_num",
+      "calpads_fall1_cert_num"
+    ),
+    names(df)
+  )
+  # coerces columns to integer
+  if (length(created_cols) > 0) {
+    df <- df %>% mutate(across(all_of(created_cols), as.integer))
+  }
+  
+  # ---- Optional validation output
+  if (isTRUE(validate)) {
+    # prints BEFORE table + AFTER cross-tab + str() for each recode pair; just like original script
+    message("Validation output (before + after + str), only when columns exist:")
+    
+    validate_recode(df, "charter", "charter_dummy")
+    validate_recode(df, "school_type", "school_type_num")
+    validate_recode(df, "ed_option_type", "ed_option_type_num")
+    validate_recode(df, "nslp_status", "nslp_status_num")
+    validate_recode(df, "charter_funding", "charter_funding_num")
+    validate_recode(df, "irc", "irc_num")
+    validate_recode(df, "low_grade", "low_grade_num")
+    validate_recode(df, "high_grade", "high_grade_num")
+    validate_recode(df, "calpads_fall1_cert", "calpads_fall1_cert_num")
+  }
+  
+  df
+}
+
+#t Example usage:
+cupc_1819_school <- cupc_k12_school_step4_2_dummies(
+  cupc_1819_school,
+  validate = TRUE,
+  verbose = TRUE
+)
