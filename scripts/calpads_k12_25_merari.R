@@ -843,7 +843,7 @@ validate_primary_key(dim25_cupck12_high_grade, "high_grade_num", full_run = T)
 
 validate_primary_key(dim25_cupck12_calpads_fall1_cert, "calpads_fall1_cert_num", full_run = T)
 #! safe_fwrite(dim25_cupck12_calpads_fall1_cert, table_name = "dim25_cupck12_school_calpads_fall1_cert",
-#!             data_year = 2025, data_source = "cde",
+#!             data_year = s2025, data_source = "cde",
 #!             dimension_type = "annualized", data_type = "dim",
 #!             data_description = "dimension table for whether an LEA fall 1 is certified in calpads upc k-12 school-level.",
 #!             user_note = "dim table.")
