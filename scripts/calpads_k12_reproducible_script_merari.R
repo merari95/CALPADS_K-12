@@ -492,9 +492,37 @@ cupc_1819_school <- cupc_k12_step5(cupc_1819_school)
 #~ flat_csv_out_path <- "T:/CDE data releases/Enrollment Data/CALPADS UPC Grades K-12/2018-19/cupc_k12_LEA_19_clean.csv" #@
 flat_csv_out_path <- "/Users/merarisantana/Desktop/OCDE/CALPADS_K-12/data/processed/cupc_k12_LEA_19_clean.csv" #@
 
+# Function exports Flat CSV file
 export_flat_csv <- function(df) {
   fwrite(df, flat_csv_out_path)
   df
 }
 #t Example Usage
 cupc_1819_school <- export_flat_csv(cupc_1819_school)
+
+# Step 6.2: Create FACT table (numeric-only) + validate primary key
+cupc_k12_step6_2_fact <- function(df,
+                                  pk = "cds",
+                                  drop_cols = c(
+                                    "county_name", "district_name", "school_name",
+                                    "charter", "district_type", "school_type", "ed_option_type",
+                                    "nslp_status", "charter_funding", "irc",
+                                    "low_grade", "high_grade", "calpads_fall1_cert"
+                                  ),
+                                  full_run = TRUE) {
+  stopifnot(is.data.frame(df))
+  
+  # Drop only columns that exist (prevents errors across years)
+  cols_to_drop <- intersect(drop_cols, names(df))
+  
+  df_fact <- df %>%
+    dplyr::select(-dplyr::all_of(cols_to_drop))
+  
+  # Validate primary key (will error if primary key (pk) missing)
+  validate_primary_key(df_fact, pk, full_run = full_run)
+  
+  df_fact
+}
+
+#t Example Usage
+cupc_1819_k12_fact <- cupc_k12_step6_2_fact(cupc_1819_school, pk = "cds", full_run = TRUE)
