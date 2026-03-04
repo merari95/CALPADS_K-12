@@ -459,3 +459,42 @@ cupc_1819_school <- cupc_k12_school_step4_2_dummies(
   validate = TRUE,
   verbose = TRUE
 )
+
+
+# Step 4.3: convert academic year "YYYY-YYYY" to two-digit integer
+cupc_k12_step4_3_year <- function(df) {
+  
+  df %>%
+    mutate(
+      year = as.integer(stringr::str_sub(as.character(year), -2, -1))
+    )
+}
+
+#t Example Usage
+cupc_1819_school <- cupc_k12_step4_3_year(cupc_1819_school)
+
+# Step 5: Pad CDS codes and create cds variable ####
+### this custom function creates a CDS code variable and ensures that all CDS codes are the correct length
+### CDS code is the unique identifier the state gives to each school. We have the three pieces of CDS 
+### code in this file (county, district and school code) so we concatenate those to make cds
+cupc_k12_step5 <- function(df) {
+  cdetidy::pad_cds_codes(df)
+}
+
+#t Example Usage
+cupc_1819_school <- cupc_k12_step5(cupc_1819_school)
+
+# Step 6: Export Data ####
+## Step 6.1: Flat csv file ####
+## we want this version that is less messy for REDI staff and other folks who want to work with data 
+## but are not going to be doing visualizations
+#~ fwrite(cupc_1819_k12, "T:/CDE data releases/Enrollment Data/CALPADS UPC Grades K-12/2018-19/cupc_k12_LEA_19_clean.csv")
+#~ flat_csv_out_path <- "T:/CDE data releases/Enrollment Data/CALPADS UPC Grades K-12/2018-19/cupc_k12_LEA_19_clean.csv" #@
+flat_csv_out_path <- "/Users/merarisantana/Desktop/OCDE/CALPADS_K-12/data/processed/cupc_k12_LEA_19_clean.csv" #@
+
+export_flat_csv <- function(df) {
+  fwrite(df, flat_csv_out_path)
+  df
+}
+#t Example Usage
+cupc_1819_school <- export_flat_csv(cupc_1819_school)
