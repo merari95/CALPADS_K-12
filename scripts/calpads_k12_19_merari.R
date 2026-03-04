@@ -39,7 +39,7 @@ cupc_1819_k12 <- cupc_1819_k12 %>%
 names(cupc_1819_k12)
 
 ## Step 3.1: Simplifying column names that are too long #### 
-cupc_1819_k12 <- cupc_1819_k12 %>% 
+cupc_1819_k12 <- cupc_1819_k12 %>% #d
   rename(year = academic_year, ed_option_type = educational_option_type, nslp_status = nslp_provision_status,
          charter = charter_school_y_n, charter_num = charter_number, charter_funding = charter_funding_type,
          calpads_upc_count = calpads_unduplicated_pupil_count_upc, calpads_fall1_cert = calpads_fall_1_certification_status_y_n,
@@ -143,7 +143,7 @@ cupc_1819_k12 <- cupc_1819_k12 %>%
 table(cupc_1819_k12$ed_option_type, cupc_1819_k12$ed_option_type_num)
 str(cupc_1819_k12$ed_option_type_num)
 
-## same process for nslp_status variable 
+## same process for nslp_status variable #d
 table(cupc_1819_k12$nslp_status)
 cupc_1819_k12 <- cupc_1819_k12 %>% 
   mutate(
@@ -280,7 +280,7 @@ fwrite(cupc_1819_k12, "/Users/merarisantana/Desktop/OCDE/CALPADS_K-12/data/proce
 ## Step 6.2: Fact file and entities dim ####
 ### a fact file is a version of our original dataset that we will send to the OCDE server, so we need this to 
 ### only have numeric information - no text 
-cupc_1819_k12_fact <- cupc_1819_k12 %>%
+cupc_1819_k12_fact <- cupc_1819_k12 %>% #d
   select(-c(county_name, district_name, school_name, charter, district_type, school_type, ed_option_type,
             nslp_status, charter, charter_funding, irc, low_grade, high_grade, calpads_fall1_cert))
 
@@ -336,7 +336,7 @@ dim19_cupck12_ed_option_type <- cupc_1819_k12 %>%
   filter(!is.na(ed_option_type_num))
 print(dim19_cupck12_ed_option_type)
 
-dim19_cupck12_nslp_status <- cupc_1819_k12 %>% 
+dim19_cupck12_nslp_status <- cupc_1819_k12 %>% #d
   select(year, nslp_status, nslp_status_num) %>% 
   distinct() %>% 
   arrange(nslp_status_num) %>% 
@@ -418,7 +418,7 @@ validate_primary_key(dim19_cupck12_ed_option_type, "ed_option_type_num", full_ru
 #!             data_description = "dimension table for education option type.",
 #!             user_note = "dim table.")
 
-validate_primary_key(dim19_cupck12_nslp_status, "nslp_status_num", full_run = T)
+validate_primary_key(dim19_cupck12_nslp_status, "nslp_status_num", full_run = T) #d
 #! safe_fwrite(dim19_cupck12_nslp_status, table_name = "dim19_cupck12_nslp_status",
 #!             data_year = 2019, data_source = "cde",
 #!             dimension_type = "annualized", data_type = "dim",
@@ -486,7 +486,7 @@ names(cupc_1819_k12_school)
 
 ## Step 3.1: Simplifying column names that are too long #### 
 cupc_1819_k12_school <- cupc_1819_k12_school %>% 
-  rename(year = academic_year, ed_option_type = educational_option_type, nslp_status = nslp_provision_status,
+  rename(year = academic_year, ed_option_type = educational_option_type, nslp_status = nslp_provision_status, #d
          charter = charter_school_y_n, charter_num = charter_number, charter_funding = charter_funding_type,
          calpads_upc_count = calpads_unduplicated_pupil_count_upc, calpads_fall1_cert = calpads_fall_1_certification_status_y_n,
          frpm = free_reduced_meal_program, english_learner = english_learner_el)
@@ -590,7 +590,7 @@ cupc_1819_k12_school <- cupc_1819_k12_school %>%
 table(cupc_1819_k12_school$ed_option_type, cupc_1819_k12_school$ed_option_type_num)
 str(cupc_1819_k12_school$ed_option_type_num)
 
-## same process for nslp_status variable 
+## same process for nslp_status variable #d
 table(cupc_1819_k12_school$nslp_status)
 cupc_1819_k12_school <- cupc_1819_k12_school %>% 
   mutate(
@@ -730,7 +730,7 @@ fwrite(cupc_1819_k12_school, "/Users/merarisantana/Desktop/OCDE/CALPADS_K-12/dat
 ## Step 6.2: Fact file and entities dim ####
 ### a fact file is a version of our original dataset that we will send to the OCDE server, so we need this to 
 ### only have numeric information - no text 
-cupc_1819_k12_school_fact <- cupc_1819_k12_school %>%
+cupc_1819_k12_school_fact <- cupc_1819_k12_school %>% #d
   select(-c(county_name, district_name, school_name, charter, district_type, school_type, ed_option_type,
             nslp_status, charter, charter_funding, irc, low_grade, high_grade, calpads_fall1_cert))
 
@@ -786,7 +786,7 @@ dim19_cupck12_ed_option_type <- cupc_1819_k12_school %>%
   filter(!is.na(ed_option_type_num))
 print(dim19_cupck12_ed_option_type)
 
-dim19_cupck12_nslp_status <- cupc_1819_k12_school %>% 
+dim19_cupck12_nslp_status <- cupc_1819_k12_school %>% #d
   select(year, nslp_status, nslp_status_num) %>% 
   distinct() %>% 
   arrange(nslp_status_num) %>% 
@@ -868,7 +868,7 @@ validate_primary_key(dim19_cupck12_ed_option_type, "ed_option_type_num", full_ru
 #!             data_description = "dimension table for education option typein calpads k12 school-level.",
 #!             user_note = "dim table.")
 
-validate_primary_key(dim19_cupck12_nslp_status, "nslp_status_num", full_run = T)
+validate_primary_key(dim19_cupck12_nslp_status, "nslp_status_num", full_run = T) #d
 #! safe_fwrite(dim19_cupck12_nslp_status, table_name = "dim19_cupck12_school_nslp_status",
 #!             data_year = 2019, data_source = "cde",
 #!             dimension_type = "annualized", data_type = "dim",

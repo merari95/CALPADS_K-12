@@ -38,7 +38,7 @@ cupc_2425_k12 <- cupc_2425_k12 %>%
 names(cupc_2425_k12)
 
 ## Step 3.1: Simplifying column names that are too long #### 
-cupc_2425_k12 <- cupc_2425_k12 %>% 
+cupc_2425_k12 <- cupc_2425_k12 %>% #d
   rename(year = academic_year, ed_option_type = educational_option_type, frpm_status = free_reduced_meal_program,
          charter = charter_school_y_n, charter_num = charter_number, charter_funding = charter_funding_type,
          calpads_upc_count = calpads_unduplicated_pupil_count_upc, calpads_fall1_cert = calpads_fall_1_certification_status_y_n,
@@ -75,7 +75,7 @@ cupc_2425_k12 <- cupc_2425_k12 %>%
          unduplicated_frpm_eligible_count = as.integer(unduplicated_frpm_eligible_count),
          english_learner = as.integer(english_learner),
          calpads_upc_count = as.integer(calpads_upc_count),
-         tribal_foster_youth = as.integer(tribal_foster_youth))
+         tribal_foster_youth = as.integer(tribal_foster_youth)) #d
 str(cupc_2425_k12)
 
 ## Step 4.2: Creating dummy variables ####
@@ -436,8 +436,9 @@ validate_primary_key(dim25_cupck12_calpads_fall1_cert, "calpads_fall1_cert_num",
 
 # Step 2. Read in latest CDS data #### 
 ## 2425 is the year, 912 is the grade span (9-12)
-setwd("T:/CDE data releases/Enrollment Data/CALPADS UPC Grades K-12/2024-25")
-cupc_2425_k12_school <- readxl::read_excel("cupc2425-k12.xlsx", sheet = "School-Level CALPADS UPC Data")
+#~ setwd("T:/CDE data releases/Enrollment Data/CALPADS UPC Grades K-12/2024-25")
+setwd("/Users/merarisantana/Desktop/OCDE/CALPADS_K-12/data/raw") 
+cupc_2425_k12_school <- readxl::read_excel("cupc2425-k12.xlsx", sheet = "School-Level CALPADS UPC Data", skip = 1) #$
 
 # this is a custom function we created to compare variable names across datasets
 # variables between the two are the same 
@@ -491,7 +492,7 @@ cupc_2425_k12_school <- cupc_2425_k12_school %>%
          unduplicated_frpm_eligible_count = as.integer(unduplicated_frpm_eligible_count),
          english_learner = as.integer(english_learner),
          calpads_upc_count = as.integer(calpads_upc_count),
-         tribal_foster_youth = as.integer(tribal_foster_youth))
+         tribal_foster_youth = as.integer(tribal_foster_youth)) #d
 str(cupc_2425_k12_school)
 
 ## Step 4.2: Creating dummy variables ####
@@ -675,14 +676,15 @@ view(cupc_2425_k12_school)
 ## Step 6.1: Flat csv file ####
 ## we want this version that is less messy for REDI staff and other folks who want to work with data 
 ## but are not going to be doing visualizations
-fwrite(cupc_2425_k12_school, "T:/CDE data releases/Enrollment Data/CALPADS UPC Grades K-12/2024-25/cupc_k12_school_25_clean.csv")
+#~ fwrite(cupc_2425_k12_school, "T:/CDE data releases/Enrollment Data/CALPADS UPC Grades K-12/2024-25/cupc_k12_school_25_clean.csv")
+fwrite(cupc_2425_k12_school, "/Users/merarisantana/Desktop/OCDE/CALPADS_K-12/data/processed/cupc_k12_school_25_clean.csv")
 
 ## Step 6.2: Fact file and entities dim ####
 ### a fact file is a version of our original dataset that we will send to the OCDE server, so we need this to 
 ### only have numeric information - no text 
-cupc_2425_k12_school_fact <- cupc_2425_k12_school %>%
+cupc_2425_k12_school_fact <- cupc_2425_k12_school %>% #d
   select(-c(county_name, district_name, school_name, charter, district_type, school_type, ed_option_type,
-            tribal_foster_youth, charter, charter_funding, irc, low_grade, high_grade, calpads_fall1_cert))
+            tribal_foster_youth, charter, charter_funding, irc, low_grade, high_grade, calpads_fall1_cert)) #d
 
 # exporting 2024-25 fact
 ## we now check the primary key which uniquely identifies each row
@@ -692,11 +694,11 @@ validate_primary_key(cupc_2425_k12_school_fact, c("cds"),
 
 ## we now export the fact table using our custom function "safe_fwrite"
 ## merari, just update this code for the current file, but do not run it as it exports to our server
-safe_fwrite(cupc_2425_k12_school_fact, table_name = "cupc_k12_25_school_fact",
-            data_year = 2025, data_source = "cde",
-            data_description = "2024-25 calpads school upc k-12 file",
-            data_type = "enrollment",
-            user_note = "fact file.")
+#! safe_fwrite(cupc_2425_k12_school_fact, table_name = "cupc_k12_25_school_fact",
+#!             data_year = 2025, data_source = "cde",
+#!             data_description = "2024-25 calpads school upc k-12 file",
+#!             data_type = "enrollment",
+#!             user_note = "fact file.")
 
 ## Step 6.3: Creating other dim tables ####
 ### we now make dimension tables to link together key numerical and text info for data viz
@@ -784,65 +786,65 @@ print(dim25_cupck12_calpads_fall1_cert)
 cupck12_25_dims <- get_dim_objects()
 
 validate_primary_key(cupck12_25_entities_dim, "cds", full_run = T)
-safe_fwrite(cupck12_25_entities_dim, table_name = "cupck12_school_25_entities",
-            dimension_type = "annualized", data_source = "cde",
-            data_year = 2025, data_type = "dim",
-            data_description = "2024-25 calpads k-12 school-level upc entities dim table",
-            user_note = "dim table.")
+#! safe_fwrite(cupck12_25_entities_dim, table_name = "cupck12_school_25_entities",
+#!             dimension_type = "annualized", data_source = "cde",
+#!             data_year = 2025, data_type = "dim",
+#!             data_description = "2024-25 calpads k-12 school-level upc entities dim table",
+#!             user_note = "dim table.")
 
 validate_primary_key(dim25_cupck12_districts, "district_code", full_run = T)
-safe_fwrite(dim25_cupck12_districts, table_name = "cupck12_school_25_districts",
-            data_year = 2025, data_source = "cde",
-            dimension_type = "annualized", data_type = "dim",
-            data_description = "unique list of school districts calpads k-12 school-level upc 2025.",
-            user_note = "dim table.")
+#! safe_fwrite(dim25_cupck12_districts, table_name = "cupck12_school_25_districts",
+#!             data_year = 2025, data_source = "cde",
+#!             dimension_type = "annualized", data_type = "dim",
+#!             data_description = "unique list of school districts calpads k-12 school-level upc 2025.",
+#!             user_note = "dim table.")
 
 validate_primary_key(dim25_cupck12_schools, "school_code", full_run = T)
-safe_fwrite(dim25_cupck12_schools, table_name = "cupck12_school_25_schools",
-            data_year = 2025, data_source = "cde",
-            dimension_type = "annualized", data_type = "dim",
-            data_description = "unique list of school schools calpads k-12 school-level upc 2025.",
-            user_note = "dim table.")
+#! safe_fwrite(dim25_cupck12_schools, table_name = "cupck12_school_25_schools",
+#!             data_year = 2025, data_source = "cde",
+#!             dimension_type = "annualized", data_type = "dim",
+#!             data_description = "unique list of school schools calpads k-12 school-level upc 2025.",
+#!             user_note = "dim table.")
 
 validate_primary_key(dim25_cupck12_ed_option_type, "ed_option_type_num", full_run = T)
-safe_fwrite(dim25_cupck12_ed_option_type, table_name = "dim25_cupck12_school_ed_option_type",
-            data_year = 2025, data_source = "cde",
-            dimension_type = "annualized", data_type = "dim",
-            data_description = "dimension table for education option typein calpads k12 school-level.",
-            user_note = "dim table.")
+#! safe_fwrite(dim25_cupck12_ed_option_type, table_name = "dim25_cupck12_school_ed_option_type",
+#!             data_year = 2025, data_source = "cde",
+#!             dimension_type = "annualized", data_type = "dim",
+#!             data_description = "dimension table for education option typein calpads k12 school-level.",
+#!           user_note = "dim table.")
 
 validate_primary_key(dim25_cupck12_charter_funding, "charter_funding_num", full_run = T)
-safe_fwrite(dim25_cupck12_charter_funding, table_name = "dim25_cupck12_school_charter_funding",
-            data_year = 2025, data_source = "cde",
-            dimension_type = "annualized", data_type = "dim",
-            data_description = "dimension table for charter funding in calpads upc k-12 school-level.",
-            user_note = "dim table.")
+#! safe_fwrite(dim25_cupck12_charter_funding, table_name = "dim25_cupck12_school_charter_funding",
+#!             data_year = 2025, data_source = "cde",
+#!             dimension_type = "annualized", data_type = "dim",
+#!             data_description = "dimension table for charter funding in calpads upc k-12 school-level.",
+#!             user_note = "dim table.")
 
 validate_primary_key(dim25_cupck12_irc, "irc_num", full_run = T)
-safe_fwrite(dim25_cupck12_irc, table_name = "dim25_cupck12_school_irc",
-            data_year = 2025, data_source = "cde",
-            dimension_type = "annualized", data_type = "dim",
-            data_description = "dimension table for whether an LEA is an independently reporting charter in calpads upc k-12 school-level.",
-            user_note = "dim table.")
+#! safe_fwrite(dim25_cupck12_irc, table_name = "dim25_cupck12_school_irc",
+#!             data_year = 2025, data_source = "cde",
+#!             dimension_type = "annualized", data_type = "dim",
+#!             data_description = "dimension table for whether an LEA is an independently reporting charter in calpads upc k-12 school-level.",
+#!             user_note = "dim table.")
 
 validate_primary_key(dim25_cupck12_low_grade, "low_grade_num", full_run = T)
-safe_fwrite(dim25_cupck12_low_grade, table_name = "dim25_cupck12_school_low_grade",
-            data_year = 2025, data_source = "cde",
-            dimension_type = "annualized", data_type = "dim",
-            data_description = "dimension table for an LEAs lowest grade in calpads upc k-12 school-level.",
-            user_note = "dim table.")
+#! safe_fwrite(dim25_cupck12_low_grade, table_name = "dim25_cupck12_school_low_grade",
+#!             data_year = 2025, data_source = "cde",
+#!             dimension_type = "annualized", data_type = "dim",
+#!             data_description = "dimension table for an LEAs lowest grade in calpads upc k-12 school-level.",
+#!             user_note = "dim table.")
 
 validate_primary_key(dim25_cupck12_high_grade, "high_grade_num", full_run = T)
-safe_fwrite(dim25_cupck12_high_grade, table_name = "dim25_cupck12_school_high_grade",
-            data_year = 2025, data_source = "cde",
-            dimension_type = "annualized", data_type = "dim",
-            data_description = "dimension table for an LEAs highest grade in calpads upc k-12 school-level.",
-            user_note = "dim table.")
+#! safe_fwrite(dim25_cupck12_high_grade, table_name = "dim25_cupck12_school_high_grade",
+#!             data_year = 2025, data_source = "cde",
+#!             dimension_type = "annualized", data_type = "dim",
+#!             data_description = "dimension table for an LEAs highest grade in calpads upc k-12 school-level.",
+#!             user_note = "dim table.")
 
 validate_primary_key(dim25_cupck12_calpads_fall1_cert, "calpads_fall1_cert_num", full_run = T)
-safe_fwrite(dim25_cupck12_calpads_fall1_cert, table_name = "dim25_cupck12_school_calpads_fall1_cert",
-            data_year = 2025, data_source = "cde",
-            dimension_type = "annualized", data_type = "dim",
-            data_description = "dimension table for whether an LEA fall 1 is certified in calpads upc k-12 school-level.",
-            user_note = "dim table.")
+#! safe_fwrite(dim25_cupck12_calpads_fall1_cert, table_name = "dim25_cupck12_school_calpads_fall1_cert",
+#!             data_year = 2025, data_source = "cde",
+#!             dimension_type = "annualized", data_type = "dim",
+#!             data_description = "dimension table for whether an LEA fall 1 is certified in calpads upc k-12 school-level.",
+#!             user_note = "dim table.")
 
