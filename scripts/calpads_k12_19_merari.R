@@ -290,6 +290,7 @@ cupc_1819_k12_fact <- cupc_1819_k12 %>% #d
 validate_primary_key(cupc_1819_k12_fact, c("cds"), 
                      full_run = T)
 
+#LEFT OFF HERE MERARI!!!!!!
 ## we now export the fact table using our custom function "safe_fwrite"
 ## merari, just update this code for the current file, but do not run it as it exports to our server
 #! safe_fwrite(cupc_1819_k12_fact, table_name = "cupc_k12_19",

@@ -526,3 +526,47 @@ cupc_k12_step6_2_fact <- function(df,
 
 #t Example Usage
 cupc_1819_k12_fact <- cupc_k12_step6_2_fact(cupc_1819_school, pk = "cds", full_run = TRUE)
+
+
+# Step 6.3: Export FACT table to OCDE server (via safe_fwrite)
+cupc_k12_step6_3_export_fact <- function(df_fact,
+                                         data_year,          # e.g., 2019 (for 2018-19)
+                                         table_prefix = "cupc_k12",
+                                         data_source = "cde",
+                                         data_type = "enrollment",
+                                         user_note = "fact file.",
+                                         data_description = NULL) {
+  # Ensures the input 'df_fact' is a data frame.
+  stopifnot(is.data.frame(df_fact))
+
+ # Ensures 'data_year' is a single numeric value (e.g., 2019).
+ # Prevents errors if someone passes text or multiple values.
+  stopifnot(is.numeric(data_year), length(data_year) == 1)
+  
+  # create two-digit suffix for table name (e.g., 2019 -> "19")
+  yy <- sprintf("%02d", data_year %% 100)
+  
+  # default description if not provided
+  if (is.null(data_description)) {
+    prev_year <- data_year - 1
+    data_description <- paste0(prev_year, "-", yy, " calpads upc k-12 file")
+  }
+  
+  table_name <- paste0(table_prefix, "_", yy)
+  
+  safe_fwrite(
+    df_fact,
+    table_name = table_name,
+    data_year = data_year,
+    data_source = data_source,
+    data_description = data_description,
+    data_type = data_type,
+    user_note = user_note
+  )
+ # Return TRUE silently (confirms function ran successfully without printing output)
+  invisible(TRUE)
+}
+
+#t Example Usage
+#! NOTE: This command WRITES to the server. Do not run unless you intend to export.
+#! cupc_k12_step6_3_export_fact (cupc_1819_k12_fact, data_year = 2019)
