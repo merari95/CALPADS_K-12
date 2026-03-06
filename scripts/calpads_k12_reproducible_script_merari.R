@@ -755,50 +755,6 @@ cupc_k12_step6_4_validate_dims <- function(dims, full_run = TRUE) {
 # t Example Usage:
 cupc_k12_step6_4_validate_dims(dims_1819, full_run = TRUE)
 
-#! COMMENTED SAFE_WRITE FUNCTION BECAUSE YOU DON'T WANT TO OVERWRITE OCDE SERVER
-# This function exports the dimension tables, skips dimension tables that don't exist
-#! cupc_k12_step6_4_export_dims <- function(dims,
-#!                                          specs,
-#!                                          data_year,
-#!                                          do_export = FALSE) {
-#!  # Stops if dims is not a list
-#!    stopifnot(is.list(dims))
-#!
-#!   # Creates year pieces for dynamic table names/descriptions
-#!   yy <- sprintf("%02d", data_year %% 100)
-#!   prev_year <- data_year - 1
-#!
-#!   # Look up the correct table name for this dimension. It extracts value from a nested list
-#!   for (name in names(specs)) {
-#!     dim_df <- dims[[name]]
-#!    
-#!     # Skip dimensions that don't exist for that year
-#!     if (is.null(dim_df)) {
-#!       message("Skipping dimension: ", name)
-#!       next
-#!     }
-#!    
-#!     # Build year-specific table name and description
-#!     table_name <- paste0(specs[[name]]$table_name, "_", yy)
-#!     description <- paste0(prev_year, "-", yy, " ", specs[[name]]$description)
-#!    
-#!     if (do_export) {
-#!       safe_fwrite(
-#!         dim_df,
-#!         table_name = table_name,
-#!         dimension_type = "annualized",
-#!         data_source = "cde",
-#!         data_year = data_year,
-#!         data_type = "dim",
-#!         data_description = description,
-#!         user_note = "dim table."
-#!       )
-#!     }
-#!   }
-#!  
-#!   invisible(TRUE)
-#! }
-
 dim_export_specs <- list(
   entities = list(
     table_name = "cupck12_entities",
@@ -851,10 +807,61 @@ dim_export_specs <- list(
 )
 
 
+#! COMMENTED SAFE_WRITE FUNCTION BECAUSE YOU DON'T WANT TO OVERWRITE OCDE SERVER
+# This function exports the dimension tables, skips dimension tables that don't exist
+cupc_k12_step6_4_export_dims <- function(dims,
+                                          specs,
+                                          data_year,
+                                          do_export = FALSE) {
+   # Stops if dims is not a list
+   stopifnot(is.list(dims))
+
+   # Creates year pieces for dynamic table names/descriptions
+   yy <- sprintf("%02d", data_year %% 100)
+
+   # Look up the correct table name and description for this dimension from a nested list
+   for (name in names(specs)) {
+     dim_df <- dims[[name]]
+
+     # Skip dimensions that don't exist for that year
+     if (is.null(dim_df)) {
+       message("Skipping dimension: ", name)
+       next
+     }
+
+     # Build year-specific table name and description
+     table_name <- paste0(specs[[name]]$table_name, "_", yy)
+     description <- paste0(specs[[name]]$description, " ", data_year)
+
+     if (do_export) {
+       safe_fwrite(
+         dim_df,
+         table_name = table_name,
+         dimension_type = "annualized",
+         data_source = "cde",
+         data_year = data_year,
+         data_type = "dim",
+         data_description = description,
+         user_note = "dim table."
+       )
+     } else {
+       cat("\n--- Preview Export ---\n")
+       cat("dimension:", name, "\n")
+       cat("table_name:", table_name, "\n")
+       cat("description:", description, "\n")
+       cat("rows:", nrow(dim_df), "\n")
+     }
+   }
+
+   invisible(TRUE)
+ }
+
+
+
 #t Example usage
-#! cupc_k12_step6_4_export_dims(
-#!   dims = dims_1819,
-#!   specs = dim_export_specs,
-#!   data_year = 2019,
-#!   do_export = TRUE
-#! )
+cupc_k12_step6_4_export_dims(
+  dims = dims_1819,
+  specs = dim_export_specs,
+  data_year = 2019,
+  do_export = FALSE
+ )
