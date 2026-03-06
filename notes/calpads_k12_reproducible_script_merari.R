@@ -1,5 +1,6 @@
 #META-INFO
 #REPRODUCIBLE SCRIPT: CALPADS UPC GRADES K-12, 2020-2024 PREP
+#NOTES FOR UNDERSTANDING MAIN SCRIPT
 #WEBPAGE WITH DATA FILE: https://www.cde.ca.gov/ds/ad/filescupc.asp
 #LAST EDITED ON: 3.3.2026
 #CREATED BY: Merari Santana-Carbajal
@@ -528,8 +529,9 @@ cupc_k12_step6_2_fact <- function(df,
 cupc_1819_k12_fact <- cupc_k12_step6_2_fact(cupc_1819_school, pk = "cds", full_run = TRUE)
 
 #! COMMENTED SAFE_WRITE FUNCTION BECAUSE YOU DON'T WANT TO OVERWRITE OCDE SERVER
-#! # Step 6.3: Export FACT table to OCDE server (via safe_fwrite)
-#! cupc_k12_step6_3_export_fact <- function(df_fact,
+#! # Step 6.2b: Export FACT table to OCDE server (via safe_fwrite)
+#! NOTE: THIS IS SLIGHTLY DIFFERENT FROM THE FUNCTION IN calpads_k12_functions.R SCRIPT'S FUNCTION
+#! cupc_k12_step6_2b_export_fact <- function(df_fact,
 #!                                         data_year,          # e.g., 2019 (for 2018-19)
 #!                                         table_prefix = "cupc_k12",
 #!                                          data_source = "cde",
@@ -569,7 +571,7 @@ cupc_1819_k12_fact <- cupc_k12_step6_2_fact(cupc_1819_school, pk = "cds", full_r
 
 #t Example Usage
 #! NOTE: This command WRITES to the server. Do not run unless you intend to export.
-#! cupc_k12_step6_3_export_fact (cupc_1819_k12_fact, data_year = 2019)
+#! cupc_k12_step6_2b_export_fact (cupc_1819_k12_fact, data_year = 2019)
 
 ## Step 6.3: Creating other dim tables ####
 ### we now make dimension tables to link together key numerical and text info for data viz
@@ -612,7 +614,7 @@ maybe_as_integer <- function(df, col) {
 }
 
 
-# Step 6.4: Create dimension tables (entities + categorical lookup dims)
+# Step 6.3: Create dimension tables (entities + categorical lookup dims)
 # Returns a named list of dimension data frames.
 cupc_k12_step6_4_dims <- function(df) {
   stopifnot(is.data.frame(df))
