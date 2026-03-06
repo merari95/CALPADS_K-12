@@ -801,55 +801,55 @@ cupc_k12_step6_4_validate_dims(dims_1819, full_run = TRUE)
 
 dim_export_specs <- list(
   entities = list(
-    table_name = "cupck12_19_entities",
-    description = "2018-19 calpads k-12 upc entities dim table"
+    table_name = "cupck12_entities",
+    description = "calpads k-12 upc entities dim table"
   ),
   districts = list(
-    table_name = "cupck12_19_districts",
-    description = "unique list of school districts calpads k-12 upc 2019."
+    table_name = "cupck12_districts",
+    description = "unique list of school districts calpads k-12 upc"
   ),
   schools = list(
-    table_name = "cupck12_19_schools",
-    description = "unique list of schools calpads k-12 upc 2019."
+    table_name = "cupck12_schools",
+    description = "unique list of schools calpads k-12 upc"
   ),
   ed_option_type = list(
-    table_name = "dim19_cupck12_ed_option_type",
+    table_name = "dim_cupck12_ed_option_type",
     description = "dimension table for education option type."
   ),
   nslp_status = list(
-    table_name = "dim19_cupck12_nslp_status",
+    table_name = "dim_cupck12_nslp_status",
     description = "dimension table for nslp status."
   ),
   charter_funding = list(
-    table_name = "dim19_cupck12_charter_funding",
+    table_name = "dim_cupck12_charter_funding",
     description = "dimension table for charter funding in calpads upc k-12."
   ),
   irc = list(
-    table_name = "dim19_cupck12_irc",
+    table_name = "dim_cupck12_irc",
     description = "dimension table for whether an LEA is an independently reporting charter in calpads upc k-12."
   ),
   low_grade = list(
-    table_name = "dim19_cupck12_low_grade",
+    table_name = "dim_cupck12_low_grade",
     description = "dimension table for an LEAs lowest grade in calpads upc k-12."
   ),
   high_grade = list(
-    table_name = "dim19_cupck12_high_grade",
+    table_name = "dim_cupck12_high_grade",
     description = "dimension table for an LEAs highest grade in calpads upc k-12."
   ),
   calpads_fall1_cert = list(
-    table_name = "dim19_cupck12_calpads_fall1_cert",
+    table_name = "dim_cupck12_calpads_fall1_cert",
     description = "dimension table for whether an LEA fall 1 is certified in calpads upc k-12."
   ),
   school_type = list(
-    table_name = "dim19_cupck12_school_type",
+    table_name = "dim_cupck12_school_type",
     description = "dimension table for school type in calpads upc k-12."
   ),
   charter = list(
-    table_name = "dim19_cupck12_charter",
+    table_name = "dim_cupck12_charter",
     description = "dimension table for charter indicator in calpads upc k-12."
   )
-  
 )
+
 
 #t Example usage
 #! cupc_k12_step6_4_export_dims(
