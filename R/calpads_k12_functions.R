@@ -1,6 +1,9 @@
 # =========================================
 # CALPADS K-12 reusable functions
 # =========================================
+# Author: Merari Santana-Carbajal
+# Organization: Orange County Department of Education
+# Last Updated: 03/06/26
 
 # Step 2-3.1: Read and standardize CALPADS UPC data
 # -------------------------------------------------
