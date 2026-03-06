@@ -527,46 +527,230 @@ cupc_k12_step6_2_fact <- function(df,
 #t Example Usage
 cupc_1819_k12_fact <- cupc_k12_step6_2_fact(cupc_1819_school, pk = "cds", full_run = TRUE)
 
+#! COMMENTED SAFE_WRITE FUNCTION BECAUSE YOU DON'T WANT TO OVERWRITE OCDE SERVER
+#! # Step 6.3: Export FACT table to OCDE server (via safe_fwrite)
+#! cupc_k12_step6_3_export_fact <- function(df_fact,
+#!                                         data_year,          # e.g., 2019 (for 2018-19)
+#!                                         table_prefix = "cupc_k12",
+#!                                          data_source = "cde",
+#!                                          data_type = "enrollment",
+#!                                          user_note = "fact file.",
+#!                                          data_description = NULL) {
+#!   # Ensures the input 'df_fact' is a data frame.
+#!   stopifnot(is.data.frame(df_fact))
 
-# Step 6.3: Export FACT table to OCDE server (via safe_fwrite)
-cupc_k12_step6_3_export_fact <- function(df_fact,
-                                         data_year,          # e.g., 2019 (for 2018-19)
-                                         table_prefix = "cupc_k12",
-                                         data_source = "cde",
-                                         data_type = "enrollment",
-                                         user_note = "fact file.",
-                                         data_description = NULL) {
-  # Ensures the input 'df_fact' is a data frame.
-  stopifnot(is.data.frame(df_fact))
-
- # Ensures 'data_year' is a single numeric value (e.g., 2019).
- # Prevents errors if someone passes text or multiple values.
-  stopifnot(is.numeric(data_year), length(data_year) == 1)
+#!  # Ensures 'data_year' is a single numeric value (e.g., 2019).
+#!  # Prevents errors if someone passes text or multiple values.
+#!   stopifnot(is.numeric(data_year), length(data_year) == 1)
   
-  # create two-digit suffix for table name (e.g., 2019 -> "19")
-  yy <- sprintf("%02d", data_year %% 100)
+#!   # create two-digit suffix for table name (e.g., 2019 -> "19")
+#!   yy <- sprintf("%02d", data_year %% 100)
   
-  # default description if not provided
-  if (is.null(data_description)) {
-    prev_year <- data_year - 1
-    data_description <- paste0(prev_year, "-", yy, " calpads upc k-12 file")
-  }
+#!   # default description if not provided
+#!   if (is.null(data_description)) {
+#!     prev_year <- data_year - 1
+#!     data_description <- paste0(prev_year, "-", yy, " calpads upc k-12 file")
+#!   }
   
-  table_name <- paste0(table_prefix, "_", yy)
+#!   table_name <- paste0(table_prefix, "_", yy)
   
-  safe_fwrite(
-    df_fact,
-    table_name = table_name,
-    data_year = data_year,
-    data_source = data_source,
-    data_description = data_description,
-    data_type = data_type,
-    user_note = user_note
-  )
- # Return TRUE silently (confirms function ran successfully without printing output)
-  invisible(TRUE)
-}
+#!   safe_fwrite(
+#!     df_fact,
+#!     table_name = table_name,
+#!     data_year = data_year,
+#!     data_source = data_source,
+#!     data_description = data_description,
+#!     data_type = data_type,
+#!     user_note = user_note
+#!   )
+#!  # Return TRUE silently (confirms function ran successfully without printing output)
+#!   invisible(TRUE)
+#! }
 
 #t Example Usage
 #! NOTE: This command WRITES to the server. Do not run unless you intend to export.
 #! cupc_k12_step6_3_export_fact (cupc_1819_k12_fact, data_year = 2019)
+
+## Step 6.3: Creating other dim tables ####
+### we now make dimension tables to link together key numerical and text info for data viz
+### explainer here: https://www.dremio.com/wiki/dimension-table/
+### more info on snowflake schema which is our data schema: https://www.geeksforgeeks.org/dbms/snowflake-schema-in-data-warehouse-model/
+
+# Helper 1: Selects columns, removes duplicate rows, optionally sorts, optionally removes NA codes and optionally removes school_code 0
+# without crashing if columns don't exist
+make_dim_if_exists <- function(df, cols, arrange_by = NULL, filter_nonzero_col = NULL) {
+  # If any required columns are missing, skip
+  if (!all(cols %in% names(df))) return(NULL)
+  
+# creates a dataframe with selected columns and duplicate rows removed 
+    out <- df %>%
+    dplyr::select(dplyr::all_of(cols)) %>%
+    dplyr::distinct()
+  
+  # Optional: arrange by desired column if arrange_by argument is present when calling function
+    # Checks two conditions: arrange_by argument is provided (is NOT NULL) and column (in arrange_by) exists
+    if (!is.null(arrange_by) && arrange_by %in% names(out)) {
+    out <- out %>% dplyr::arrange(.data[[arrange_by]])
+  }
+    # Optional: Remove rows where the numeric code is missing (NA). (common for dummy dims)
+    if (!is.null(arrange_by) && arrange_by %in% names(out)) {
+    out <- out %>% dplyr::filter(!is.na(.data[[arrange_by]]))
+    }
+    # Optional: filter out columns that equal to 0. (currently not using)
+    # Checks two conditions: filter_nonzero_col argument is provided (is NOT NULL) and column (in filter_nonzero_col) exists
+    if (!is.null(filter_nonzero_col) && filter_nonzero_col %in% names(out)) {
+    out <- out %>% dplyr::filter(.data[[filter_nonzero_col]] != 0)
+    }
+    # Returns the dimension table
+    out
+}
+
+# Helper 2: Safely coerce a column to integer if column exists, otherwise leave df alone
+# !!col : use the column name stored in the variable col
+maybe_as_integer <- function(df, col) {
+  if (col %in% names(df)) df %>% dplyr::mutate(!!col := as.integer(.data[[col]])) else df
+}
+
+
+# Step 6.4: Create dimension tables (entities + categorical lookup dims)
+# Returns a named list of dimension data frames.
+cupc_k12_step6_4_dims <- function(df) {
+  stopifnot(is.data.frame(df))
+  
+  dims <- list()
+  
+  # ---- entities dim
+  dims$entities <- make_dim_if_exists(
+    df,
+    cols = c("year", "cds", "county_code", "district_code", "school_code")
+  )
+  
+  # ---- districts dim
+  dims$districts <- make_dim_if_exists(
+    df,
+    cols = c("year", "district_code", "district_name"),
+    arrange_by = "district_name"
+  )
+  if (!is.null(dims$districts)) {
+    dims$districts <- maybe_as_integer(dims$districts, "district_code")
+  }
+  
+  # ---- schools dim
+  # We filter out schools with school_code = 0 ; because when school_code = 0, 
+  # these represent district-level records (and not schools, and we want schools for school dimensions)
+  dims$schools <- make_dim_if_exists(
+    df,
+    cols = c("year", "school_code", "school_name"),
+    arrange_by = "school_code"
+  )
+  
+  if (!is.null(dims$schools)) {
+    dims$schools <- dims$schools %>%
+      dplyr::mutate(school_code = as.integer(school_code)) %>%
+      dplyr::filter(school_code != 0) %>%
+      dplyr::arrange(school_code)
+  }
+  
+  # ---- categorical lookup dims (only created if both text + numeric columns exist)
+  dims$school_type <- make_dim_if_exists(
+    df,
+    cols = c("year", "school_type", "school_type_num"),
+    arrange_by = "school_type_num"
+  )
+  
+  dims$ed_option_type <- make_dim_if_exists(
+    df,
+    cols = c("year", "ed_option_type", "ed_option_type_num"),
+    arrange_by = "ed_option_type_num"
+  )
+  
+  dims$nslp_status <- make_dim_if_exists(
+    df,
+    cols = c("year", "nslp_status", "nslp_status_num"),
+    arrange_by = "nslp_status_num"
+  )
+  
+  dims$charter_funding <- make_dim_if_exists(
+    df,
+    cols = c("year", "charter_funding", "charter_funding_num"),
+    arrange_by = "charter_funding_num"
+  )
+  
+  dims$charter <- make_dim_if_exists(
+    df,
+    cols = c("year", "charter", "charter_dummy"),
+    arrange_by = "charter_dummy"
+  )
+  
+  dims$irc <- make_dim_if_exists(
+    df,
+    cols = c("year", "irc", "irc_num"),
+    arrange_by = "irc_num"
+  )
+  
+  dims$low_grade <- make_dim_if_exists(
+    df,
+    cols = c("year", "low_grade", "low_grade_num"),
+    arrange_by = "low_grade_num"
+  )
+  
+  dims$high_grade <- make_dim_if_exists(
+    df,
+    cols = c("year", "high_grade", "high_grade_num"),
+    arrange_by = "high_grade_num"
+  )
+  
+  dims$calpads_fall1_cert <- make_dim_if_exists(
+    df,
+    cols = c("year", "calpads_fall1_cert", "calpads_fall1_cert_num"),
+    arrange_by = "calpads_fall1_cert_num"
+  )
+  
+  dims
+}
+
+# t Example Usage:
+dims_1819 <- cupc_k12_step6_4_dims(cupc_1819_school)
+
+#t to inspect:
+names(dims_1819)
+
+#t to access tables (examples):
+dims_1819$schools
+dims_1819$districts
+dims_1819$low_grade
+
+## Step 6.4: Exporting dimension tables ####
+### merari, also just update this code but do not run other than "validate_primary_key lines" to ensure those are fine
+### green checkmark and text is good, red x and text is bad 
+
+# This function makes sure: Each dimension table has a unique identifier column 
+# that can safely be used as a key when joining with the fact table.
+cupc_k12_step6_4_validate_dims <- function(dims, full_run = TRUE) {
+  stopifnot(is.list(dims))
+
+  # Safely skips dimensions that don't exist for that year.
+  validate_if_present <- function(x, pk) {
+    if (is.null(x)) return(invisible(NULL))
+    validate_primary_key(x, pk, full_run = full_run)
+  }
+  
+  validate_if_present(dims$entities, "cds")
+  validate_if_present(dims$districts, "district_code")
+  validate_if_present(dims$schools, "school_code")
+  
+  validate_if_present(dims$school_type, "school_type_num") 
+  validate_if_present(dims$ed_option_type, "ed_option_type_num")
+  validate_if_present(dims$nslp_status, "nslp_status_num")
+  validate_if_present(dims$charter_funding, "charter_funding_num")
+  validate_if_present(dims$charter, "charter_dummy") 
+  validate_if_present(dims$irc, "irc_num")
+  validate_if_present(dims$low_grade, "low_grade_num")
+  validate_if_present(dims$high_grade, "high_grade_num")
+  validate_if_present(dims$calpads_fall1_cert, "calpads_fall1_cert_num")
+  
+  invisible(TRUE)
+}
+
+# t Example Usage:
+cupc_k12_step6_4_validate_dims(dims_1819, full_run = TRUE)
