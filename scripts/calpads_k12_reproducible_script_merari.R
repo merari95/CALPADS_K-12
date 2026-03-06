@@ -596,7 +596,7 @@ make_dim_if_exists <- function(df, cols, arrange_by = NULL, filter_nonzero_col =
     if (!is.null(arrange_by) && arrange_by %in% names(out)) {
     out <- out %>% dplyr::filter(!is.na(.data[[arrange_by]]))
     }
-    # Optional: filter out columns that equal to 0. (currently not using)
+    # Optional: filter out rows where a specified column equals 0. (currently not using)
     # Checks two conditions: filter_nonzero_col argument is provided (is NOT NULL) and column (in filter_nonzero_col) exists
     if (!is.null(filter_nonzero_col) && filter_nonzero_col %in% names(out)) {
     out <- out %>% dplyr::filter(.data[[filter_nonzero_col]] != 0)
@@ -754,3 +754,107 @@ cupc_k12_step6_4_validate_dims <- function(dims, full_run = TRUE) {
 
 # t Example Usage:
 cupc_k12_step6_4_validate_dims(dims_1819, full_run = TRUE)
+
+#! COMMENTED SAFE_WRITE FUNCTION BECAUSE YOU DON'T WANT TO OVERWRITE OCDE SERVER
+# This function exports the dimension tables, skips dimension tables that don't exist
+#! cupc_k12_step6_4_export_dims <- function(dims,
+#!                                          specs,
+#!                                          data_year,
+#!                                          do_export = FALSE) {
+#!  # Stops if dims is not a list
+#!    stopifnot(is.list(dims))
+#!
+#!   # Creates year pieces for dynamic table names/descriptions
+#!   yy <- sprintf("%02d", data_year %% 100)
+#!   prev_year <- data_year - 1
+#!
+#!   # Look up the correct table name for this dimension. It extracts value from a nested list
+#!   for (name in names(specs)) {
+#!     dim_df <- dims[[name]]
+#!    
+#!     # Skip dimensions that don't exist for that year
+#!     if (is.null(dim_df)) {
+#!       message("Skipping dimension: ", name)
+#!       next
+#!     }
+#!    
+#!     # Build year-specific table name and description
+#!     table_name <- paste0(specs[[name]]$table_name, "_", yy)
+#!     description <- paste0(prev_year, "-", yy, " ", specs[[name]]$description)
+#!    
+#!     if (do_export) {
+#!       safe_fwrite(
+#!         dim_df,
+#!         table_name = table_name,
+#!         dimension_type = "annualized",
+#!         data_source = "cde",
+#!         data_year = data_year,
+#!         data_type = "dim",
+#!         data_description = description,
+#!         user_note = "dim table."
+#!       )
+#!     }
+#!   }
+#!  
+#!   invisible(TRUE)
+#! }
+
+dim_export_specs <- list(
+  entities = list(
+    table_name = "cupck12_19_entities",
+    description = "2018-19 calpads k-12 upc entities dim table"
+  ),
+  districts = list(
+    table_name = "cupck12_19_districts",
+    description = "unique list of school districts calpads k-12 upc 2019."
+  ),
+  schools = list(
+    table_name = "cupck12_19_schools",
+    description = "unique list of schools calpads k-12 upc 2019."
+  ),
+  ed_option_type = list(
+    table_name = "dim19_cupck12_ed_option_type",
+    description = "dimension table for education option type."
+  ),
+  nslp_status = list(
+    table_name = "dim19_cupck12_nslp_status",
+    description = "dimension table for nslp status."
+  ),
+  charter_funding = list(
+    table_name = "dim19_cupck12_charter_funding",
+    description = "dimension table for charter funding in calpads upc k-12."
+  ),
+  irc = list(
+    table_name = "dim19_cupck12_irc",
+    description = "dimension table for whether an LEA is an independently reporting charter in calpads upc k-12."
+  ),
+  low_grade = list(
+    table_name = "dim19_cupck12_low_grade",
+    description = "dimension table for an LEAs lowest grade in calpads upc k-12."
+  ),
+  high_grade = list(
+    table_name = "dim19_cupck12_high_grade",
+    description = "dimension table for an LEAs highest grade in calpads upc k-12."
+  ),
+  calpads_fall1_cert = list(
+    table_name = "dim19_cupck12_calpads_fall1_cert",
+    description = "dimension table for whether an LEA fall 1 is certified in calpads upc k-12."
+  ),
+  school_type = list(
+    table_name = "dim19_cupck12_school_type",
+    description = "dimension table for school type in calpads upc k-12."
+  ),
+  charter = list(
+    table_name = "dim19_cupck12_charter",
+    description = "dimension table for charter indicator in calpads upc k-12."
+  )
+  
+)
+
+#t Example usage
+#! cupc_k12_step6_4_export_dims(
+#!   dims = dims_1819,
+#!   specs = dim_export_specs,
+#!   data_year = 2019,
+#!   do_export = TRUE
+#! )
