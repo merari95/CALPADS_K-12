@@ -767,7 +767,7 @@ run_cupc_k12_year_level <- function(start_year,
   df <- cupc_k12_cds(df)
   
   # Step 6.1: Export flat CSV for local use
-  yy <- sprintf("%02d", (start_year + 1) %% 100)
+  yy <- sprintf("%02d", data_year %% 100)
   level_label <- ifelse(level == "LEA", "lea", "school")
   
   flat_csv_name <- paste0("cupc_k12_", level_label, "_", yy, "_clean.csv")
