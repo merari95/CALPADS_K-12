@@ -12,7 +12,7 @@
 # preprocessing steps so downstream functions can assume a consistent structure:
 #
 # 1. Dynamically constructs the file name from the starting academic year
-#    (e.g., start_year = 2018 → file "cupc1819-k12.xlsx").
+#    (e.g., start_year = 2018 --> file "cupc1819-k12.xlsx").
 # 2. Selects the appropriate Excel sheet depending on the level (LEA vs School).
 # 3. Reads the data using readxl.
 # 4. Standardizes column names using janitor::clean_names() so they are lowercase
@@ -455,44 +455,43 @@ cupc_k12_fact <- function(df,
 # When do_export = FALSE, the function prints a preview of the export
 # metadata instead of writing to the OCDE server. This allows safe
 # verification of table names and descriptions during development.
-#! cupc_k12_fact_export <- function(df_fact,
-#!                                  data_year,
-#!                                  table_prefix = "cupc_k12",
-#!                                  data_source = "cde",
-#!                                  data_type = "enrollment",
-#!                                  user_note = "fact file.",
-#!                                  data_description = NULL,
-#!                                  do_export = FALSE) {
-#!   stopifnot(is.data.frame(df_fact))
-#!   stopifnot(is.numeric(data_year), length(data_year) == 1)
-#!
-#!   yy <- sprintf("%02d", data_year %% 100)
-#!   table_name <- paste0(table_prefix, "_", yy)
-#!
-#!   if (is.null(data_description)) {
-#!     data_description <- paste0("calpads upc k-12 file ", data_year)
-#!   }
-#!
-#!   if (do_export) {
-#!     safe_fwrite(
-#!       df_fact,
-#!       table_name = table_name,
-#!       data_year = data_year,
-#!       data_source = data_source,
-#!       data_description = data_description,
-#!       data_type = data_type,
-#!       user_note = user_note
-#!     )
-#!   } else {
-#!     cat("\n--- Preview Fact Export ---\n")
-#!     cat("table_name:", table_name, "\n")
-#!     cat("data_year:", data_year, "\n")
-#!     cat("description:", data_description, "\n")
-#!     cat("rows:", nrow(df_fact), "\n")
-#!   }
-#!
-#!   invisible(TRUE)
-#! }
+cupc_k12_fact_export <- function(df_fact,
+                                 data_year,
+                                table_prefix = "cupc_k12",
+                                data_source = "cde",
+                                data_type = "enrollment",
+                                user_note = "fact file.",
+                                data_description = NULL,
+                                do_export = FALSE) {
+ stopifnot(is.data.frame(df_fact))
+  stopifnot(is.numeric(data_year), length(data_year) == 1)
+
+ yy <- sprintf("%02d", data_year %% 100)
+ table_name <- paste0(table_prefix, "_", yy)
+
+ if (is.null(data_description)) {
+     data_description <- paste0("calpads upc k-12 file ", data_year)
+   }
+
+ if (do_export) {
+   safe_fwrite(
+     df_fact,
+     table_name = table_name,
+     data_year = data_year,
+     data_source = data_source,
+     data_description = data_description,
+     data_type = data_type,
+     user_note = user_note     )
+ } else {
+   cat("\n--- Preview Fact Export ---\n")
+   cat("table_name:", table_name, "\n")
+   cat("data_year:", data_year, "\n")
+   cat("description:", data_description, "\n")
+   cat("rows:", nrow(df_fact), "\n")
+ }
+
+  invisible(TRUE)
+}
 
 # Step 6.3a: Dimension table helper functions 
 # (make_dim_if_exists and maybe_as_integer)
@@ -538,7 +537,7 @@ maybe_as_integer <- function(df, col) {
 }
 
 # Step 6.3b: Build dimension tables
-# --------------------------------
+# ---------------------------------
 # cupc_k12_dims : Creates a named list of dimension tables from the cleaned
 # CALPADS dataset. These tables store unique identifier fields and lookup
 # values for categorical variables so they can be linked to the fact table
@@ -678,47 +677,46 @@ cupc_k12_validate_dims <- function(dims, full_run = TRUE) {
 # When do_export = FALSE, the function prints a preview of the export
 # metadata instead of writing to the OCDE server. This allows safe
 # verification during development.
-#! cupc_k12_export_dims <- function(dims,
-#!                                  specs,
-#!                                  data_year,
-#!                                  do_export = FALSE) {
-#!   stopifnot(is.list(dims))
-#!
-#!   yy <- sprintf("%02d", data_year %% 100)
-#!
-#!   for (name in names(specs)) {
-#!     dim_df <- dims[[name]]
-#!
-#!     if (is.null(dim_df)) {
-#!       message("Skipping dimension: ", name)
-#!       next
-#!     }
-#!
-#!     table_name <- paste0(specs[[name]]$table_name, "_", yy)
-#!     description <- paste0(specs[[name]]$description, " ", data_year)
-#!
-#!     if (do_export) {
-#!       safe_fwrite(
-#!         dim_df,
-#!         table_name = table_name,
-#!         dimension_type = "annualized",
-#!         data_source = "cde",
-#!         data_year = data_year,
-#!         data_type = "dim",
-#!         data_description = description,
-#!         user_note = "dim table."
-#!       )
-#!     } else {
-#!       cat("\n--- Preview Export ---\n")
-#!       cat("dimension:", name, "\n")
-#!       cat("table_name:", table_name, "\n")
-#!       cat("description:", description, "\n")
-#!       cat("rows:", nrow(dim_df), "\n")
-#!     }
-#!   }
-#!
-#!   invisible(TRUE)
-#! }
+cupc_k12_export_dims <- function(dims,
+                                specs,
+                                data_year,
+                                do_export = FALSE) {
+ stopifnot(is.list(dims))
+
+ yy <- sprintf("%02d", data_year %% 100)
+
+ for (name in names(specs)) {
+   dim_df <- dims[[name]]
+
+   if (is.null(dim_df)) {
+     message("Skipping dimension: ", name)
+     next
+   }
+
+   table_name <- paste0(specs[[name]]$table_name, "_", yy)
+   description <- paste0(specs[[name]]$description, " ", data_year)
+
+   if (do_export) {
+     safe_fwrite(
+       dim_df,
+       table_name = table_name,
+       dimension_type = "annualized",
+       data_source = "cde",
+       data_year = data_year,
+       data_type = "dim",
+       data_description = description,
+       user_note = "dim table."
+     )
+   } else {
+     cat("\n--- Preview Export ---\n")
+     cat("dimension:", name, "\n")
+     cat("table_name:", table_name, "\n")
+     cat("description:", description, "\n")
+     cat("rows:", nrow(dim_df), "\n")
+   }
+ }
+invisible(TRUE)
+ }
 
 # Pipeline: Run full CALPADS K-12 processing for one year and level
 run_cupc_k12_year_level <- function(start_year,

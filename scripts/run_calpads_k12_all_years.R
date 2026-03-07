@@ -82,7 +82,6 @@ dim_export_specs <- list(
 # =========================================
 # Years and levels to run
 # =========================================
-# Start with one year while testing, then expand to all years.
 years <- 2018
 levels <- c("LEA", "School")
 
@@ -102,9 +101,34 @@ for (yr in years) {
       level = lvl,
       raw_dir = raw_dir,
       processed_dir = processed_dir,
-      validate_dummies = FALSE,
+      validate_dummies = TRUE,
       verbose = TRUE
     )
+    
+    # -----------------------------------------
+    # OPTIONAL VERIFICATION: Inspect outputs
+    # -----------------------------------------
+    # Uncomment this section to print key outputs and dimension tables
+    # when testing the pipeline. This helps confirm that recoding and
+    # dimension creation worked correctly.
+    
+     cat("\n=====================================\n")
+     cat("Verification for", run_name, "\n")
+     cat("=====================================\n")
+    
+    # # Check fact table size
+     cat("\nFact table rows:\n")
+     print(nrow(results[[run_name]]$fact))
+    
+    # # Check suppression columns detected
+     cat("\nSuppression columns detected:\n")
+     print(results[[run_name]]$suppression_cols)
+    
+    # # Print dimension tables
+     for (dim_name in names(results[[run_name]]$dims)) {
+       cat("\n--- Dimension:", dim_name, "---\n")
+       print(results[[run_name]]$dims[[dim_name]])
+     }
     
     # -----------------------------------------
     # Optional: preview dimension export metadata
@@ -112,12 +136,12 @@ for (yr in years) {
     # data_year is the ending academic year
     # Example: start_year = 2018 -> data_year = 2019
     #
-    # cupc_k12_export_dims(
-    #   dims = results[[run_name]]$dims,
-    #   specs = dim_export_specs,
-    #   data_year = yr + 1,
-    #   do_export = FALSE
-    # )
+    cupc_k12_export_dims(
+       dims = results[[run_name]]$dims,
+       specs = dim_export_specs,
+       data_year = yr + 1,
+       do_export = FALSE
+     )
     
     # -----------------------------------------
     # Optional: preview fact table export metadata
@@ -128,21 +152,21 @@ for (yr in years) {
     # Example School fact table name pattern:
     #   cupc_k12_school_fact_19
     #
-    # if (lvl == "LEA") {
-    #   cupc_k12_fact_export(
-    #     df_fact = results[[run_name]]$fact,
-    #     data_year = yr + 1,
-    #     table_prefix = "cupc_k12",
-    #     do_export = FALSE
-    #   )
-    # } else {
-    #   cupc_k12_fact_export(
-    #     df_fact = results[[run_name]]$fact,
-    #     data_year = yr + 1,
-    #     table_prefix = "cupc_k12_school_fact",
-    #     do_export = FALSE
-    #   )
-    # }
+    if (lvl == "LEA") {
+       cupc_k12_fact_export(
+         df_fact = results[[run_name]]$fact,
+         data_year = yr + 1,
+         table_prefix = "cupc_k12",
+         do_export = FALSE
+       )
+     } else {
+       cupc_k12_fact_export(
+       df_fact = results[[run_name]]$fact,
+       data_year = yr + 1,
+       table_prefix = "cupc_k12_school_fact",
+       do_export = FALSE
+       )
+     }
     
     message("Finished start_year = ", yr, " | level = ", lvl)
   }
