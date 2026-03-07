@@ -454,24 +454,21 @@ cupc_k12_fact <- function(df,
   df_fact
 }
 
-#! COMMENTED SAFE_WRITE FUNCTION BECAUSE YOU DON'T WANT TO OVERWRITE OCDE SERVER
+#! safe_fwrite() only runs when do_export = TRUE
+#! default behavior is preview-only to prevent accidental overwrite
 # Step 6.2b: Export fact table to OCDE server
 # -------------------------------------------
 # cupc_k12_fact_export : Exports the fact table to the OCDE server using
 # safe_fwrite(). The table name is automatically constructed from the
 # table prefix and the two-digit academic year (e.g., 2019 -> "19").
-#
-# When do_export = FALSE, the function prints a preview of the export
-# metadata instead of writing to the OCDE server. This allows safe
-# verification of table names and descriptions during development.
 cupc_k12_fact_export <- function(df_fact,
                                  data_year,
-                                table_prefix = "cupc_k12",
-                                data_source = "cde",
-                                data_type = "enrollment",
-                                user_note = "fact file.",
-                                data_description = NULL,
-                                do_export = FALSE) {
+                                 table_prefix = "cupc_k12",
+                                 data_source = "cde",
+                                 data_type = "enrollment",
+                                 user_note = "fact file.",
+                                 data_description = NULL,
+                                 do_export = FALSE) {
  stopifnot(is.data.frame(df_fact))
   stopifnot(is.numeric(data_year), length(data_year) == 1)
 
@@ -675,17 +672,14 @@ cupc_k12_validate_dims <- function(dims, full_run = TRUE) {
   invisible(TRUE)
 }
 
-#! COMMENTED SAFE_WRITE FUNCTION BECAUSE YOU DON'T WANT TO OVERWRITE OCDE SERVER
 
+#! safe_fwrite() only runs when do_export = TRUE
+#! default behavior is preview-only to prevent accidental overwrite
 # Step 6.4b: Export dimension tables to OCDE server
 # -------------------------------------------------
 # cupc_k12_export_dims : Exports dimension tables to the OCDE server using
 # safe_fwrite(). Table names are built dynamically from a metadata list
 # and the two-digit academic year suffix.
-#
-# When do_export = FALSE, the function prints a preview of the export
-# metadata instead of writing to the OCDE server. This allows safe
-# verification during development.
 cupc_k12_export_dims <- function(dims,
                                 specs,
                                 data_year,
@@ -733,9 +727,12 @@ run_cupc_k12_year_level <- function(start_year,
                                     raw_dir,
                                     processed_dir,
                                     validate_dummies = FALSE,
-                                    verbose = TRUE) {
+                                    verbose = TRUE,
+                                    run_final_export = FALSE,
+                                    specs = NULL) {
   
   level <- match.arg(level)
+  data_year <- start_year + 1
   
   # Step 2-3.1: Read and standardize CALPADS UPC data
   df <- read_cupc_k12(
@@ -771,7 +768,7 @@ run_cupc_k12_year_level <- function(start_year,
   
   # Step 6.1: Export flat CSV for local use
   yy <- sprintf("%02d", (start_year + 1) %% 100)
-  level_label <- ifelse(level == "LEA", "LEA", "school")
+  level_label <- ifelse(level == "LEA", "lea", "school")
   
   flat_csv_name <- paste0("cupc_k12_", level_label, "_", yy, "_clean.csv")
   flat_csv_path <- file.path(processed_dir, flat_csv_name)
@@ -787,9 +784,32 @@ run_cupc_k12_year_level <- function(start_year,
   # Step 6.4a: Validate dimension table primary keys
   cupc_k12_validate_dims(dims, full_run = TRUE)
   
+  # Step 6.5: Final export to OCDE server
+  if (run_final_export) {
+    if (is.null(specs)) {
+      stop("specs must be provided when run_final_export = TRUE")
+    }
+    
+    cupc_k12_fact_export(
+      df_fact = df_fact,
+      data_year = data_year,
+      do_export = TRUE
+    )
+    
+    cupc_k12_export_dims(
+      dims = dims,
+      specs = specs,
+      data_year = data_year,
+      do_export = TRUE
+    )
+  } else {
+    message("Final export disabled. Set run_final_export = TRUE to write to OCDE server.")
+  }
+  
   # Return all outputs
   list(
     start_year = start_year,
+    data_year = data_year,
     level = level,
     clean = df,
     fact = df_fact,
