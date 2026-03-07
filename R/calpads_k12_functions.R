@@ -233,6 +233,12 @@ cupc_k12_dummies <- function(df, validate = FALSE, verbose = TRUE) {
     d |>
       dplyr::mutate(
         school_type = naize(school_type),
+       
+        school_type = dplyr::case_when(
+          school_type == "Special Ed (Public)" ~ "Special Education Schools (Public)",
+          TRUE ~ school_type
+        ),
+        
         school_type_num = dplyr::case_when(
           school_type == "Alternative Schools of Choice" ~ 1L,
           school_type == "Continuation High Schools" ~ 2L,
@@ -248,7 +254,6 @@ cupc_k12_dummies <- function(df, validate = FALSE, verbose = TRUE) {
           school_type == "K-12 Schools (Public)" ~ 12L,
           school_type == "Opportunity Schools" ~ 13L,
           school_type == "Special Education Schools (Public)" ~ 14L,
-          school_type == "Special Ed (Public)" ~ 14L,
           school_type == "Preschool" ~ 15L,
           school_type == "District Office" ~ 16L,
           TRUE ~ NA_integer_
