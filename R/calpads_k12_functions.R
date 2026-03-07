@@ -26,9 +26,9 @@
 # by later steps in the pipeline (type conversion, dummy creation, fact/dim tables).
 #
 # Example:
-# df <- read_cupc_k12(start_year = 2018, level = "LEA", raw_dir = "data/raw")
+# df <- read_cupc_k12(start_year = 2019, level = "LEA", raw_dir = "data/raw")
 read_cupc_k12 <- function(start_year,
-                                skip = 1,
+                                skip = 0,
                                 level = c("LEA", "School"),
                                 raw_dir,
                                 show_str = FALSE,
