@@ -94,7 +94,8 @@ for (yr in years) {
   for (lvl in levels) {
     message("Running start_year = ", yr, " | level = ", lvl)
     
-    run_name <- paste0(yr, "_", lvl)
+    data_year <- yr + 1
+    run_name <- paste0(data_year, "_", lvl)
     
     results[[run_name]] <- run_cupc_k12_year_level(
       start_year = yr,
