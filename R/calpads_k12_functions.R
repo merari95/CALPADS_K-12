@@ -248,7 +248,9 @@ cupc_k12_dummies <- function(df, validate = FALSE, verbose = TRUE) {
           school_type == "K-12 Schools (Public)" ~ 12L,
           school_type == "Opportunity Schools" ~ 13L,
           school_type == "Special Education Schools (Public)" ~ 14L,
+          school_type == "Special Ed (Public)" ~ 14L,
           school_type == "Preschool" ~ 15L,
+          school_type == "District Office" ~ 16L,
           TRUE ~ NA_integer_
         )
       )
@@ -285,6 +287,7 @@ cupc_k12_dummies <- function(df, validate = FALSE, verbose = TRUE) {
           nslp_status == "Provision 1" ~ 4L,
           nslp_status == "Provision 2" ~ 5L,
           nslp_status == "Provision 3" ~ 6L,
+          nslp_status == "Not Participating" ~ 7L,
           TRUE ~ NA_integer_
         )
       )
@@ -335,7 +338,7 @@ cupc_k12_dummies <- function(df, validate = FALSE, verbose = TRUE) {
         high_grade_num = dplyr::case_when(
           high_grade %in% as.character(1:13) ~ suppressWarnings(as.integer(high_grade)),
           high_grade == "Adult" ~ 14L,
-          high_grade == "Post-Secondary" ~ 15L,
+          high_grade %in% c("Post Secondary", "Post-Secondary") ~ 15L,
           high_grade == "K" ~ 16L,
           high_grade == "P" ~ 17L,
           TRUE ~ NA_integer_
