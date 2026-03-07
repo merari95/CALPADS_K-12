@@ -53,6 +53,7 @@ read_cupc_k12 <- function(start_year,
   
   df <- readxl::read_excel(file_path, sheet = sheet_name, skip = skip) |>
     janitor::clean_names() |>
+    dplyr::mutate(dplyr::across(where(is.character), ~ dplyr::na_if(.x, "N/A"))) |> 
     dplyr::rename(
       year = dplyr::any_of("academic_year"),
       ed_option_type = dplyr::any_of("educational_option_type"),
