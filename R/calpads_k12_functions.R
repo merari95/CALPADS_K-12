@@ -34,16 +34,20 @@ read_cupc_k12 <- function(start_year,
                                 show_str = FALSE,
                                 show_view = FALSE) {
   level <- match.arg(level)
-  
+  # If level equals "LEA" -> use "LEA-Level CALPADS UPC Data"
+  # Otherwise -> use "School-Level CALPADS UPC Data"
   sheet_name <- ifelse(level == "LEA",
                        "LEA-Level CALPADS UPC Data",
                        "School-Level CALPADS UPC Data")
   
+  # Extract the last two digits of start_year and start_year + 1
+  # to build the academic-year file code, e.g. 2019 -> "1920"
   file_code <- paste0(
     substr(as.character(start_year), 3, 4),
     substr(as.character(start_year + 1), 3, 4)
   )
   
+  # Creates file name and gives file_path
   file_name <- paste0("cupc", file_code, "-k12.xlsx")
   file_path <- file.path(raw_dir, file_name)
   
@@ -51,6 +55,8 @@ read_cupc_k12 <- function(start_year,
     stop("File not found: ", file_path)
   }
   
+  # Read CALPADS UPC data, clean column names, convert literal "N/A" to NA,
+  # and rename selected variables to standardized names used in the pipeline.
   df <- readxl::read_excel(file_path, sheet = sheet_name, skip = skip) |>
     janitor::clean_names() |>
     dplyr::mutate(dplyr::across(where(is.character), ~ dplyr::na_if(.x, "N/A"))) |> 
@@ -85,7 +91,6 @@ read_cupc_k12 <- function(start_year,
 # analysis and database export. It performs two main tasks:
 #
 # 1. Detects suppressed values ("*") in the dataset using cdetidy::star_scan().
-#    Suppressed values occur in some CDE datasets when counts are hidden for privacy.
 #    The function records which columns contain suppression so they can be handled
 #    appropriately later in the pipeline if needed.
 #
@@ -94,12 +99,11 @@ read_cupc_k12 <- function(start_year,
 #
 # Additional behavior:
 # - If suppression is detected in a column scheduled for integer conversion,
-#   a warning is printed because converting directly to integer may remove
-#   the suppression marker unless handled first.
+#   a warning is printed.
 # - If expected numeric columns are missing from the dataset (which may occur
 #   in some years), the function skips them and prints a note.
 # - Optional debugging flags allow printing the structure of the dataset
-#   before and after type conversion.
+#   before and after type conversion ('show_str_before' and 'show_str_after').
 #
 # The function returns a list containing:
 #   $df                --> the dataframe with updated column types
@@ -110,23 +114,26 @@ read_cupc_k12 <- function(start_year,
 # df <- step4_out$df
 # suppression_cols <- step4_out$suppression_cols
 cupc_k12_types <- function(df,
-                                 int_cols = c(
-                                   "total_enrollment",
-                                   "frpm",
-                                   "foster",
-                                   "homeless",
-                                   "migrant_program",
-                                   "direct_certification",
-                                   "unduplicated_frpm_eligible_count",
-                                   "english_learner",
-                                   "calpads_upc_count",
-                                   "tribal_foster_youth"
-                                 ),
-                                 show_str_before = FALSE,
-                                 show_str_after = FALSE,
-                                 warn_missing = TRUE) {
+                           int_cols = c(
+                             "total_enrollment",
+                             "frpm",
+                             "foster",
+                             "homeless",
+                             "migrant_program",
+                             "direct_certification",
+                             "unduplicated_frpm_eligible_count",
+                             "english_learner",
+                             "calpads_upc_count",
+                             "tribal_foster_youth"
+                             ),
+                           show_str_before = FALSE,
+                           show_str_after = FALSE,
+                           warn_missing = TRUE) {
+  
+  # Suppression (scan ALL columns)
   suppression_cols <- cdetidy::star_scan(df)$columns
   
+  # Optional: message about any suppression anywhere
   if (length(suppression_cols) > 0) {
     message("Suppression '*' detected in columns: ",
             paste(suppression_cols, collapse = ", "))
@@ -134,6 +141,7 @@ cupc_k12_types <- function(df,
     message("No suppression '*' detected in any column.")
   }
   
+  # Optional safety: warn if suppression touches integer conversion columns
   suppressed_int_cols <- intersect(suppression_cols, intersect(int_cols, names(df)))
   if (length(suppressed_int_cols) > 0) {
     message("WARNING: Suppression '*' appears in columns you plan to convert to integer: ",
@@ -141,6 +149,7 @@ cupc_k12_types <- function(df,
             ". Converting now may lose suppression info unless you create flags first.")
   }
   
+  # Optionally print the data structure before type conversion
   if (show_str_before) {
     message("---- str(df) BEFORE type conversion ----")
     print(str(df))
@@ -149,19 +158,23 @@ cupc_k12_types <- function(df,
   present <- intersect(int_cols, names(df))
   missing <- setdiff(int_cols, names(df))
   
+  # Skips missing columns and thus prevents crashing
   if (warn_missing && length(missing) > 0) {
     message("Step 4 note: these expected columns were NOT found and were skipped: ",
             paste(missing, collapse = ", "))
   }
   
+  # Converts existing columns to integer
   df <- df |>
     dplyr::mutate(dplyr::across(dplyr::all_of(present), ~ as.integer(.x)))
   
+  # Optionally print the data structure after type conversion
   if (show_str_after) {
     message("---- str(df) AFTER type conversion ----")
     print(str(df))
   }
   
+  # Returns BOTH: the cleaned df and the stored suppression column list
   list(
     df = df,
     suppression_cols = suppression_cols
@@ -183,23 +196,28 @@ mutate_if_exists <- function(df, colname, fn, verbose = TRUE) {
   }
 }
 
-# Helper for validation
+# Helper for validation.
 # Prints tables to verify that a categorical variable was correctly recoded
 # into its numeric/dummy version.
 validate_recode <- function(df, orig, coded) {
   if (!all(c(orig, coded) %in% names(df))) return(invisible(NULL))
   
   message("\n--- Validation: ", orig, " -> ", coded, " ---")
+  
+  # Original category counts
   print(table(df[[orig]], useNA = "ifany"))
+  
+  # Cross-tab of original values against coded values
   print(table(df[[orig]], df[[coded]], useNA = "ifany"))
+  
+  # Cross-tab of original values against coded values
   str(df[[coded]])
 }
 
 # Step 4.2: Dummy/coded versions of categorical variables
 # -------------------------------------------------------
 # cupc_k12_dummies : Recodes selected categorical CALPADS
-# variables into numeric dummy/coded versions so they can be used more easily
-# in downstream analysis, fact tables, and dimension tables.
+# variables into numeric dummy/coded versions.
 #
 # It uses mutate_if_exists() so the function can run safely even when some
 # variables are missing in certain years or datasets.
@@ -215,8 +233,10 @@ validate_recode <- function(df, orig, coded) {
 cupc_k12_dummies <- function(df, validate = FALSE, verbose = TRUE) {
   stopifnot(is.data.frame(df))
   
+  # helper: replace literal "N/A" with NA after coercing to character
   naize <- function(x) dplyr::na_if(as.character(x), "N/A")
   
+  # ---- charter -> charter_dummy
   df <- mutate_if_exists(df, "charter", function(d) {
     d |>
       dplyr::mutate(
@@ -229,11 +249,13 @@ cupc_k12_dummies <- function(df, validate = FALSE, verbose = TRUE) {
       )
   }, verbose = verbose)
   
+  # ---- school_type -> school_type_num
   df <- mutate_if_exists(df, "school_type", function(d) {
     d |>
       dplyr::mutate(
         school_type = naize(school_type),
        
+        # Standardize one school_type label before numeric recoding
         school_type = dplyr::case_when(
           school_type == "Special Ed (Public)" ~ "Special Education Schools (Public)",
           TRUE ~ school_type
@@ -261,6 +283,7 @@ cupc_k12_dummies <- function(df, validate = FALSE, verbose = TRUE) {
       )
   }, verbose = verbose)
   
+  # ---- ed_option_type -> ed_option_type_num
   df <- mutate_if_exists(df, "ed_option_type", function(d) {
     d |>
       dplyr::mutate(
@@ -281,6 +304,7 @@ cupc_k12_dummies <- function(df, validate = FALSE, verbose = TRUE) {
       )
   }, verbose = verbose)
   
+  # ---- nslp_status -> nslp_status_num (may be missing in later years)
   df <- mutate_if_exists(df, "nslp_status", function(d) {
     d |>
       dplyr::mutate(
@@ -298,6 +322,7 @@ cupc_k12_dummies <- function(df, validate = FALSE, verbose = TRUE) {
       )
   }, verbose = verbose)
   
+  # ---- charter_funding -> charter_funding_num
   df <- mutate_if_exists(df, "charter_funding", function(d) {
     d |>
       dplyr::mutate(
@@ -310,6 +335,7 @@ cupc_k12_dummies <- function(df, validate = FALSE, verbose = TRUE) {
       )
   }, verbose = verbose)
   
+  # ---- irc -> irc_num
   df <- mutate_if_exists(df, "irc", function(d) {
     d |>
       dplyr::mutate(
@@ -322,6 +348,8 @@ cupc_k12_dummies <- function(df, validate = FALSE, verbose = TRUE) {
       )
   }, verbose = verbose)
   
+  # ---- low_grade -> low_grade_num
+  # Numeric grades remain numeric; special grade labels are assigned custom codes
   df <- mutate_if_exists(df, "low_grade", function(d) {
     d |>
       dplyr::mutate(
@@ -336,6 +364,8 @@ cupc_k12_dummies <- function(df, validate = FALSE, verbose = TRUE) {
       )
   }, verbose = verbose)
   
+  # ---- high_grade -> high_grade_num
+  # Numeric grades remain numeric; special grade labels are assigned custom codes
   df <- mutate_if_exists(df, "high_grade", function(d) {
     d |>
       dplyr::mutate(
@@ -351,6 +381,7 @@ cupc_k12_dummies <- function(df, validate = FALSE, verbose = TRUE) {
       )
   }, verbose = verbose)
   
+  # ---- calpads_fall1_cert -> calpads_fall1_cert_num
   df <- mutate_if_exists(df, "calpads_fall1_cert", function(d) {
     d |>
       dplyr::mutate(
@@ -363,6 +394,9 @@ cupc_k12_dummies <- function(df, validate = FALSE, verbose = TRUE) {
       )
   }, verbose = verbose)
   
+  # Ensure the recoded numeric/dummy columns created above are stored as integers
+  # Use intersect() to keep only recode columns that actually exist in df.
+  # This avoids errors when some variables are missing in a given dataset/year.
   created_cols <- intersect(
     c(
       "charter_dummy", "school_type_num", "ed_option_type_num", "nslp_status_num",
@@ -372,13 +406,17 @@ cupc_k12_dummies <- function(df, validate = FALSE, verbose = TRUE) {
     names(df)
   )
   
+  # coerces columns to integer
   if (length(created_cols) > 0) {
     df <- df |>
       dplyr::mutate(dplyr::across(dplyr::all_of(created_cols), as.integer))
   }
-  # Optional validation: prints tables to verify that original categorical
-  # values were correctly mapped to their numeric dummy/coded variables
+  
+  # ---- Optional validation output
   if (isTRUE(validate)) {
+    
+    # Print original category counts, cross-tab of original vs coded values,
+    # and the structure of each coded column
     message("Validation output (before + after + str), only when columns exist:")
     validate_recode(df, "charter", "charter_dummy")
     validate_recode(df, "school_type", "school_type_num")
@@ -417,9 +455,8 @@ cupc_k12_cds <- function(df) {
 
 # Step 6.1: Export flat CSV for local use
 # ---------------------------------------
-# export_flat_csv : Writes the cleaned dataset to a flat CSV file for
-# internal use by analysts or staff who need an easy-to-read version of
-# the data outside the database (e.g., Excel, quick analysis).
+# export_flat_csv : Writes the cleaned dataset to a flat CSV file for REDI staff 
+# who want to work with data but are not going to be doing visualizations
 export_flat_csv <- function(df, path) {
   data.table::fwrite(df, path)
   df
@@ -432,23 +469,25 @@ export_flat_csv <- function(df, path) {
 # so descriptive text fields (e.g., names and categorical labels) are removed.
 #
 # The function also validates that the primary key (default: CDS) uniquely
-# identifies each row before the table is exported to the database.
+# identifies each row so the table can safely be exported to the database.
 cupc_k12_fact <- function(df,
-                                  pk = "cds",
-                                  drop_cols = c(
-                                    "county_name", "district_name", "school_name",
-                                    "charter", "district_type", "school_type", "ed_option_type",
-                                    "nslp_status", "charter_funding", "irc",
-                                    "low_grade", "high_grade", "calpads_fall1_cert"
-                                  ),
-                                  full_run = TRUE) {
+                          pk = "cds",
+                          drop_cols = c(
+                            "county_name", "district_name", "school_name",
+                            "charter", "district_type", "school_type", "ed_option_type",
+                            "nslp_status", "charter_funding", "irc",
+                            "low_grade", "high_grade", "calpads_fall1_cert"
+                            ),
+                          full_run = TRUE) {
   stopifnot(is.data.frame(df))
   
+  # Drop only columns that exist (prevents errors across years)
   cols_to_drop <- intersect(drop_cols, names(df))
   
   df_fact <- df |>
     dplyr::select(-dplyr::all_of(cols_to_drop))
   
+  # Validate primary key: ensures pk column exists and uniquely identifies rows
   validate_primary_key(df_fact, pk, full_run = full_run)
   
   df_fact
@@ -472,13 +511,17 @@ cupc_k12_fact_export <- function(df_fact,
  stopifnot(is.data.frame(df_fact))
   stopifnot(is.numeric(data_year), length(data_year) == 1)
 
+ # create two-digit suffix for table name (e.g., 2019 -> "19")
  yy <- sprintf("%02d", data_year %% 100)
  table_name <- paste0(table_prefix, "_", yy)
 
+ # default description if not provided
  if (is.null(data_description)) {
      data_description <- paste0("calpads upc k-12 file ", data_year)
    }
 
+ # If do_export = TRUE, write the fact table to the OCDE server
+ # (use with care in production)
  if (do_export) {
    safe_fwrite(
      df_fact,
@@ -488,6 +531,8 @@ cupc_k12_fact_export <- function(df_fact,
      data_description = data_description,
      data_type = data_type,
      user_note = user_note     )
+   
+ # If do_export = FALSE, print a preview of the export metadata instead
  } else {
    cat("\n--- Preview Fact Export ---\n")
    cat("table_name:", table_name, "\n")
@@ -551,7 +596,7 @@ maybe_as_integer <- function(df, col) {
 #
 # The function uses helper functions to:
 # - safely create dimensions only when required columns exist
-# - sort and clean dimension tables
+# - sort dimension tables and apply small cleanup steps where needed
 # - convert key identifier columns to integer when needed
 # - remove school_code = 0 from the schools dimension, since those rows
 #   represent district-level records rather than actual schools
@@ -560,11 +605,13 @@ cupc_k12_dims <- function(df) {
   
   dims <- list()
   
+  # ---- entities dim
   dims$entities <- make_dim_if_exists(
     df,
     cols = c("year", "cds", "county_code", "district_code", "school_code")
   )
   
+  # ---- districts dim
   dims$districts <- make_dim_if_exists(
     df,
     cols = c("year", "district_code", "district_name"),
@@ -574,6 +621,9 @@ cupc_k12_dims <- function(df) {
     dims$districts <- maybe_as_integer(dims$districts, "district_code")
   }
   
+  # ---- schools dim
+  # Filter out rows with school_code = 0, because those represent
+  # district-level records rather than actual schools
   dims$schools <- make_dim_if_exists(
     df,
     cols = c("year", "school_code", "school_name"),
@@ -586,6 +636,8 @@ cupc_k12_dims <- function(df) {
       dplyr::arrange(school_code)
   }
   
+  # ---- categorical lookup dimensions
+  # created only when both label and coded columns exist in the dataset
   dims$school_type <- make_dim_if_exists(
     df,
     cols = c("year", "school_type", "school_type_num"),
@@ -642,6 +694,7 @@ cupc_k12_dims <- function(df) {
   
   dims
 }
+
 # Step 6.4a: Validate dimension table primary keys
 # -----------------------------------------------
 # cupc_k12_validate_dims : Checks that each dimension table has a valid
@@ -651,6 +704,7 @@ cupc_k12_dims <- function(df) {
 cupc_k12_validate_dims <- function(dims, full_run = TRUE) {
   stopifnot(is.list(dims))
   
+  # Safely skips dimensions that don't exist for that year.
   validate_if_present <- function(x, pk) {
     if (is.null(x)) return(invisible(NULL))
     validate_primary_key(x, pk, full_run = full_run)
@@ -686,19 +740,25 @@ cupc_k12_export_dims <- function(dims,
                                 do_export = FALSE) {
  stopifnot(is.list(dims))
 
+# Create two-digit year suffix for dynamic table names/descriptions
  yy <- sprintf("%02d", data_year %% 100)
 
+# Look up export metadata for each dimension from the specs list
  for (name in names(specs)) {
    dim_df <- dims[[name]]
 
+   # Skip dimensions that don't exist for that year
    if (is.null(dim_df)) {
      message("Skipping dimension: ", name)
      next
    }
 
+   # Build year-specific table name and description
    table_name <- paste0(specs[[name]]$table_name, "_", yy)
    description <- paste0(specs[[name]]$description, " ", data_year)
 
+   # If do_export = TRUE, write the dimension table to the OCDE server
+   # (use with care in production)
    if (do_export) {
      safe_fwrite(
        dim_df,
@@ -710,6 +770,7 @@ cupc_k12_export_dims <- function(dims,
        data_description = description,
        user_note = "dim table."
      )
+    # If do_export = FALSE, print a preview of the export metadata instead
    } else {
      cat("\n--- Preview Export ---\n")
      cat("dimension:", name, "\n")
@@ -721,7 +782,20 @@ cupc_k12_export_dims <- function(dims,
 invisible(TRUE)
  }
 
-# Pipeline: Run full CALPADS K-12 processing for one year and level
+# Pipeline: Run the full CALPADS K-12 workflow for one academic year
+# and one reporting level (LEA or School).
+#
+# This wrapper:
+# - reads and cleans the raw CALPADS UPC file
+# - creates coded/dummy variables and the CDS key
+# - writes a cleaned flat CSV
+# - builds the fact table and dimension tables
+# - validates primary keys
+# - optionally exports final tables to the OCDE server
+#
+# Note:
+# If run_final_export = TRUE, specs must be provided so dimension table
+# names and descriptions can be built during export.
 run_cupc_k12_year_level <- function(start_year,
                                     level = c("LEA", "School"),
                                     raw_dir,
@@ -732,6 +806,8 @@ run_cupc_k12_year_level <- function(start_year,
                                     specs = NULL) {
   
   level <- match.arg(level)
+  
+  # ending academic year used in export/file naming
   data_year <- start_year + 1
   
   # Step 2-3.1: Read and standardize CALPADS UPC data
@@ -785,6 +861,7 @@ run_cupc_k12_year_level <- function(start_year,
   cupc_k12_validate_dims(dims, full_run = TRUE)
   
   # Step 6.5: Final export to OCDE server
+  # run_final_export controls whether final OCDE server export happens
   if (run_final_export) {
     if (is.null(specs)) {
       stop("specs must be provided when run_final_export = TRUE")

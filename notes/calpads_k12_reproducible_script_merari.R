@@ -76,7 +76,7 @@ read_cupc_k12_step2 <- function(start_year,
     "english_learner_el"
   )
   
-  # Checks datasetmfor missing columns from expected_sources
+  # Checks dataset for missing columns from expected_sources
   missing_sources <- setdiff(expected_sources, names(df))
   if (length(missing_sources) > 0) {
     message("Step 3.1 note: missing source columns in this file: ",
@@ -259,7 +259,7 @@ validate_recode <- function(df, orig, coded) {
   # AFTER: cross-tab of original vs coded (matchessecond table() call)
   print(table(df[[orig]], df[[coded]], useNA = "ifany"))
   
-  # structure check (matches your str() call)
+  # structure check (matches str() call)
   str(df[[coded]])
 }
 
