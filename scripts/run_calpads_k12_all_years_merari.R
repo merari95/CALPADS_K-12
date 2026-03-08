@@ -148,7 +148,7 @@ for (yr in years) {
     for (dim_name in names(results[[run_name]]$dims)) {
       cat("\n--- Dimension:", dim_name, "---\n")
       print(results[[run_name]]$dims[[dim_name]])
-    }
+      }
     
     # Note:
     # The preview blocks below print QA/export metadata for review.
@@ -161,11 +161,11 @@ for (yr in years) {
     # Example: start_year = 2018 -> data_year = 2019
     #
     cupc_k12_export_dims(
-      dims = results[[run_name]]$dims,
-      specs = dim_export_specs,
-      data_year = data_year,
-      do_export = FALSE
-    )
+       dims = results[[run_name]]$dims,
+       specs = dim_export_specs,
+       data_year = data_year,
+       do_export = FALSE
+     )
     
     # ---------------------------------------------------------------
     # Preview fact table export metadata (does not write to server)
@@ -177,20 +177,20 @@ for (yr in years) {
     #   cupc_k12_school_fact_19
     #
     if (lvl == "LEA") {
-      cupc_k12_fact_export(
-        df_fact = results[[run_name]]$fact,
-        data_year = data_year,
-        table_prefix = "cupc_k12",
-        do_export = FALSE
-      )
-    } else {
-      cupc_k12_fact_export(
-        df_fact = results[[run_name]]$fact,
-        data_year = data_year,
-        table_prefix = "cupc_k12_school_fact",
-        do_export = FALSE
-      )
-    }
+       cupc_k12_fact_export(
+         df_fact = results[[run_name]]$fact,
+         data_year = data_year,
+         table_prefix = "cupc_k12",
+         do_export = FALSE
+       )
+     } else {
+       cupc_k12_fact_export(
+       df_fact = results[[run_name]]$fact,
+       data_year = data_year,
+       table_prefix = "cupc_k12_school_fact",
+       do_export = FALSE
+       )
+     }
     
     message("Finished start_year = ", yr, " | level = ", lvl)
   }

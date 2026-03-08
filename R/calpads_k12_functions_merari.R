@@ -28,11 +28,11 @@
 # Example:
 # df <- read_cupc_k12(start_year = 2019, level = "LEA", raw_dir = "data/raw")
 read_cupc_k12 <- function(start_year,
-                          skip = 0,
-                          level = c("LEA", "School"),
-                          raw_dir,
-                          show_str = FALSE,
-                          show_view = FALSE) {
+                                skip = 0,
+                                level = c("LEA", "School"),
+                                raw_dir,
+                                show_str = FALSE,
+                                show_view = FALSE) {
   level <- match.arg(level)
   # If level equals "LEA" -> use "LEA-Level CALPADS UPC Data"
   # Otherwise -> use "School-Level CALPADS UPC Data"
@@ -125,7 +125,7 @@ cupc_k12_types <- function(df,
                              "english_learner",
                              "calpads_upc_count",
                              "tribal_foster_youth"
-                           ),
+                             ),
                            show_str_before = FALSE,
                            show_str_after = FALSE,
                            warn_missing = TRUE) {
@@ -254,7 +254,7 @@ cupc_k12_dummies <- function(df, validate = FALSE, verbose = TRUE) {
     d |>
       dplyr::mutate(
         school_type = naize(school_type),
-        
+       
         # Standardize one school_type label before numeric recoding
         school_type = dplyr::case_when(
           school_type == "Special Ed (Public)" ~ "Special Education Schools (Public)",
@@ -477,7 +477,7 @@ cupc_k12_fact <- function(df,
                             "charter", "district_type", "school_type", "ed_option_type",
                             "nslp_status", "charter_funding", "irc",
                             "low_grade", "high_grade", "calpads_fall1_cert"
-                          ),
+                            ),
                           full_run = TRUE) {
   stopifnot(is.data.frame(df))
   
@@ -508,39 +508,39 @@ cupc_k12_fact_export <- function(df_fact,
                                  user_note = "fact file.",
                                  data_description = NULL,
                                  do_export = FALSE) {
-  stopifnot(is.data.frame(df_fact))
+ stopifnot(is.data.frame(df_fact))
   stopifnot(is.numeric(data_year), length(data_year) == 1)
-  
-  # create two-digit suffix for table name (e.g., 2019 -> "19")
-  yy <- sprintf("%02d", data_year %% 100)
-  table_name <- paste0(table_prefix, "_", yy)
-  
-  # default description if not provided
-  if (is.null(data_description)) {
-    data_description <- paste0("calpads upc k-12 file ", data_year)
-  }
-  
-  # If do_export = TRUE, write the fact table to the OCDE server
-  # (use with care in production)
-  if (do_export) {
-    safe_fwrite(
-      df_fact,
-      table_name = table_name,
-      data_year = data_year,
-      data_source = data_source,
-      data_description = data_description,
-      data_type = data_type,
-      user_note = user_note     )
-    
-    # If do_export = FALSE, print a preview of the export metadata instead
-  } else {
-    cat("\n--- Preview Fact Export ---\n")
-    cat("table_name:", table_name, "\n")
-    cat("data_year:", data_year, "\n")
-    cat("description:", data_description, "\n")
-    cat("rows:", nrow(df_fact), "\n")
-  }
-  
+
+ # create two-digit suffix for table name (e.g., 2019 -> "19")
+ yy <- sprintf("%02d", data_year %% 100)
+ table_name <- paste0(table_prefix, "_", yy)
+
+ # default description if not provided
+ if (is.null(data_description)) {
+     data_description <- paste0("calpads upc k-12 file ", data_year)
+   }
+
+ # If do_export = TRUE, write the fact table to the OCDE server
+ # (use with care in production)
+ if (do_export) {
+   safe_fwrite(
+     df_fact,
+     table_name = table_name,
+     data_year = data_year,
+     data_source = data_source,
+     data_description = data_description,
+     data_type = data_type,
+     user_note = user_note     )
+   
+ # If do_export = FALSE, print a preview of the export metadata instead
+ } else {
+   cat("\n--- Preview Fact Export ---\n")
+   cat("table_name:", table_name, "\n")
+   cat("data_year:", data_year, "\n")
+   cat("description:", data_description, "\n")
+   cat("rows:", nrow(df_fact), "\n")
+ }
+
   invisible(TRUE)
 }
 
@@ -735,52 +735,52 @@ cupc_k12_validate_dims <- function(dims, full_run = TRUE) {
 # safe_fwrite(). Table names are built dynamically from a metadata list
 # and the two-digit academic year suffix.
 cupc_k12_export_dims <- function(dims,
-                                 specs,
-                                 data_year,
-                                 do_export = FALSE) {
-  stopifnot(is.list(dims))
-  
-  # Create two-digit year suffix for dynamic table names/descriptions
-  yy <- sprintf("%02d", data_year %% 100)
-  
-  # Look up export metadata for each dimension from the specs list
-  for (name in names(specs)) {
-    dim_df <- dims[[name]]
-    
-    # Skip dimensions that don't exist for that year
-    if (is.null(dim_df)) {
-      message("Skipping dimension: ", name)
-      next
-    }
-    
-    # Build year-specific table name and description
-    table_name <- paste0(specs[[name]]$table_name, "_", yy)
-    description <- paste0(specs[[name]]$description, " ", data_year)
-    
-    # If do_export = TRUE, write the dimension table to the OCDE server
-    # (use with care in production)
-    if (do_export) {
-      safe_fwrite(
-        dim_df,
-        table_name = table_name,
-        dimension_type = "annualized",
-        data_source = "cde",
-        data_year = data_year,
-        data_type = "dim",
-        data_description = description,
-        user_note = "dim table."
-      )
-      # If do_export = FALSE, print a preview of the export metadata instead
-    } else {
-      cat("\n--- Preview Export ---\n")
-      cat("dimension:", name, "\n")
-      cat("table_name:", table_name, "\n")
-      cat("description:", description, "\n")
-      cat("rows:", nrow(dim_df), "\n")
-    }
-  }
-  invisible(TRUE)
-}
+                                specs,
+                                data_year,
+                                do_export = FALSE) {
+ stopifnot(is.list(dims))
+
+# Create two-digit year suffix for dynamic table names/descriptions
+ yy <- sprintf("%02d", data_year %% 100)
+
+# Look up export metadata for each dimension from the specs list
+ for (name in names(specs)) {
+   dim_df <- dims[[name]]
+
+   # Skip dimensions that don't exist for that year
+   if (is.null(dim_df)) {
+     message("Skipping dimension: ", name)
+     next
+   }
+
+   # Build year-specific table name and description
+   table_name <- paste0(specs[[name]]$table_name, "_", yy)
+   description <- paste0(specs[[name]]$description, " ", data_year)
+
+   # If do_export = TRUE, write the dimension table to the OCDE server
+   # (use with care in production)
+   if (do_export) {
+     safe_fwrite(
+       dim_df,
+       table_name = table_name,
+       dimension_type = "annualized",
+       data_source = "cde",
+       data_year = data_year,
+       data_type = "dim",
+       data_description = description,
+       user_note = "dim table."
+     )
+    # If do_export = FALSE, print a preview of the export metadata instead
+   } else {
+     cat("\n--- Preview Export ---\n")
+     cat("dimension:", name, "\n")
+     cat("table_name:", table_name, "\n")
+     cat("description:", description, "\n")
+     cat("rows:", nrow(dim_df), "\n")
+   }
+ }
+invisible(TRUE)
+ }
 
 # Pipeline: Run the full CALPADS K-12 workflow for one academic year
 # and one reporting level (LEA or School).
