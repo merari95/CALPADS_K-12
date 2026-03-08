@@ -1,6 +1,10 @@
 # =========================================
 # Run CALPADS K-12 pipeline for multiple years
 # =========================================
+# Author: Merari Santana-Carbajal
+# Organization: Orange County Department of Education
+# Last Updated: 03/08/26
+
 # This script sources reusable functions and runs the full CALPADS K-12
 # pipeline for each requested academic year and level (LEA and School).
 # Outputs are stored in a named results list and flat CSV files are written

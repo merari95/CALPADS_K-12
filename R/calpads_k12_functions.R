@@ -3,7 +3,7 @@
 # =========================================
 # Author: Merari Santana-Carbajal
 # Organization: Orange County Department of Education
-# Last Updated: 03/06/26
+# Last Updated: 03/08/26
 
 # Step 2-3.1: Read and standardize CALPADS UPC data
 # -------------------------------------------------
@@ -784,7 +784,7 @@ invisible(TRUE)
 
 # Pipeline: Run the full CALPADS K-12 workflow for one academic year
 # and one reporting level (LEA or School).
-#
+# =============================================================================
 # This wrapper:
 # - reads and cleans the raw CALPADS UPC file
 # - creates coded/dummy variables and the CDS key
@@ -792,10 +792,6 @@ invisible(TRUE)
 # - builds the fact table and dimension tables
 # - validates primary keys
 # - optionally exports final tables to the OCDE server
-#
-# Note:
-# If run_final_export = TRUE, specs must be provided so dimension table
-# names and descriptions can be built during export.
 run_cupc_k12_year_level <- function(start_year,
                                     level = c("LEA", "School"),
                                     raw_dir,
