@@ -56,57 +56,58 @@ if (!dir.exists(final_local_dir)) dir.create(final_local_dir, recursive = TRUE)
 # =========================================
 # These are used by cupc_k12_export_dims() to build OCDE table names
 # and descriptions for dimension table exports.
-dim_export_specs <- list(
-  entities = list(
-    table_name = "cupck12_entities",
-    description = "calpads k-12 upc entities dim table"
-  ),
-  districts = list(
-    table_name = "cupck12_districts",
-    description = "unique list of school districts calpads k-12 upc"
-  ),
-  schools = list(
-    table_name = "cupck12_schools",
-    description = "unique list of schools calpads k-12 upc"
-  ),
-  ed_option_type = list(
-    table_name = "dim_cupck12_ed_option_type",
-    description = "dimension table for education option type."
-  ),
-  nslp_status = list(
-    table_name = "dim_cupck12_nslp_status",
-    description = "dimension table for nslp status."
-  ),
-  charter_funding = list(
-    table_name = "dim_cupck12_charter_funding",
-    description = "dimension table for charter funding in calpads upc k-12."
-  ),
-  irc = list(
-    table_name = "dim_cupck12_irc",
-    description = "dimension table for whether an LEA is an independently reporting charter in calpads upc k-12."
-  ),
-  low_grade = list(
-    table_name = "dim_cupck12_low_grade",
-    description = "dimension table for an LEAs lowest grade in calpads upc k-12."
-  ),
-  high_grade = list(
-    table_name = "dim_cupck12_high_grade",
-    description = "dimension table for an LEAs highest grade in calpads upc k-12."
-  ),
-  calpads_fall1_cert = list(
-    table_name = "dim_cupck12_calpads_fall1_cert",
-    description = "dimension table for whether an LEA fall 1 is certified in calpads upc k-12."
-  ),
-  school_type = list(
-    table_name = "dim_cupck12_school_type",
-    description = "dimension table for school type in calpads upc k-12."
-  ),
-  charter = list(
-    table_name = "dim_cupck12_charter",
-    description = "dimension table for charter indicator in calpads upc k-12."
-  )
+
+# LEA Dimensions Specs
+dim_export_specs_lea <- list(
+  entities = list(table_name = "cupck12", suffix = "entities",
+                  description = "calpads k-12 upc entities dim table"),
+  districts = list(table_name = "cupck12", suffix = "districts",
+                   description = "unique list of school districts calpads k-12 upc"),
+  schools = list(table_name = "cupck12", suffix = "schools",
+                 description = "unique list of schools calpads k-12 upc"),
+  school_type = list(table_name = "dim", suffix = "cupck12_school_type",
+                     description = "dimension table for school type in calpads upc k-12."),
+  ed_option_type = list(table_name = "dim", suffix = "cupck12_ed_option_type",
+                        description = "dimension table for education option type."),
+  nslp_status = list(table_name = "dim", suffix = "cupck12_nslp_status",
+                     description = "dimension table for nslp status."),
+  charter_funding = list(table_name = "dim", suffix = "cupck12_charter_funding",
+                         description = "dimension table for charter funding in calpads upc k-12."),
+  irc = list(table_name = "dim", suffix = "cupck12_irc",
+             description = "dimension table for whether an LEA is an independently reporting charter in calpads upc k-12."),
+  low_grade = list(table_name = "dim", suffix = "cupck12_low_grade",
+                   description = "dimension table for an LEAs lowest grade in calpads upc k-12."),
+  high_grade = list(table_name = "dim", suffix = "cupck12_high_grade",
+                    description = "dimension table for an LEAs highest grade in calpads upc k-12."),
+  calpads_fall1_cert = list(table_name = "dim", suffix = "cupck12_calpads_fall1_cert",
+                            description = "dimension table for whether an LEA fall 1 is certified in calpads upc k-12.")
 )
 
+# School Dimensions Specs
+dim_export_specs_school <- list(
+  entities = list(table_name = "cupck12_school", suffix = "entities",
+                  description = "calpads k-12 school-level upc entities dim table"),
+  districts = list(table_name = "cupck12_school", suffix = "districts",
+                   description = "unique list of school districts calpads k-12 school-level upc"),
+  schools = list(table_name = "cupck12_school", suffix = "schools",
+                 description = "unique list of schools calpads k-12 school-level upc"),
+  school_type = list(table_name = "dim", suffix = "cupck12_school_school_type",
+                     description = "dimension table for school type in calpads upc k-12 school-level."),
+  ed_option_type = list(table_name = "dim", suffix = "cupck12_school_ed_option_type",
+                        description = "dimension table for education option type in calpads k12 school-level."),
+  nslp_status = list(table_name = "dim", suffix = "cupck12_school_nslp_status",
+                     description = "dimension table for nslp status in calpads k12 school-level."),
+  charter_funding = list(table_name = "dim", suffix = "cupck12_school_charter_funding",
+                         description = "dimension table for charter funding in calpads upc k-12 school-level."),
+  irc = list(table_name = "dim", suffix = "cupck12_school_irc",
+             description = "dimension table for whether an LEA is an independently reporting charter in calpads upc k-12 school-level."),
+  low_grade = list(table_name = "dim", suffix = "cupck12_school_low_grade",
+                   description = "dimension table for an LEAs lowest grade in calpads upc k-12 school-level."),
+  high_grade = list(table_name = "dim", suffix = "cupck12_school_high_grade",
+                    description = "dimension table for an LEAs highest grade in calpads upc k-12 school-level."),
+  calpads_fall1_cert = list(table_name = "dim", suffix = "cupck12_school_calpads_fall1_cert",
+                            description = "dimension table for whether an LEA fall 1 is certified in calpads upc k-12 school-level.")
+)
 
 # Store outputs from each year/level run for later inspection
 results <- list()
@@ -121,6 +122,8 @@ for (yr in years) {
     # Example: "2020_LEA"
     run_name <- paste0(data_year, "_", lvl)
     
+    current_specs <- if (lvl == "LEA") dim_export_specs_lea else dim_export_specs_school
+    
     results[[run_name]] <- run_cupc_k12_year_level(
       start_year = yr,
       level = lvl,
@@ -130,7 +133,7 @@ for (yr in years) {
       validate_dummies = TRUE,
       verbose = TRUE,
       run_final_export = run_final_export,
-      specs = dim_export_specs
+      specs = current_specs
     )
     
     # Verification output: prints summary information and export metadata for review.
@@ -165,7 +168,7 @@ for (yr in years) {
     #
     cupc_k12_export_dims(
        dims = results[[run_name]]$dims,
-       specs = dim_export_specs,
+       specs = current_specs,
        data_year = data_year,
        do_export = FALSE
      )
@@ -177,20 +180,20 @@ for (yr in years) {
     #   cupc_k12_19
     #
     # Example School fact table name pattern:
-    #   cupc_k12_school_fact_19
+    #   cupc_k12_19_school_fact
     #
     if (lvl == "LEA") {
        cupc_k12_fact_export(
          df_fact = results[[run_name]]$fact,
          data_year = data_year,
-         table_prefix = "cupc_k12",
+         table_name = paste0("cupc_k12_", sprintf("%02d", data_year %% 100)),
          do_export = FALSE
        )
      } else {
        cupc_k12_fact_export(
        df_fact = results[[run_name]]$fact,
        data_year = data_year,
-       table_prefix = "cupc_k12_school_fact",
+       table_name = paste0("cupc_k12_", sprintf("%02d", data_year %% 100), "_school_fact"),
        do_export = FALSE
        )
      }

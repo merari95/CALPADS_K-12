@@ -503,6 +503,7 @@ cupc_k12_fact <- function(df,
 cupc_k12_fact_export <- function(df_fact,
                                  data_year,
                                  table_prefix = "cupc_k12",
+                                 table_name = NULL,
                                  data_source = "cde",
                                  data_type = "enrollment",
                                  user_note = "fact file.",
@@ -512,8 +513,11 @@ cupc_k12_fact_export <- function(df_fact,
   stopifnot(is.numeric(data_year), length(data_year) == 1)
 
  # create two-digit suffix for table name (e.g., 2019 -> "19")
- yy <- sprintf("%02d", data_year %% 100)
- table_name <- paste0(table_prefix, "_", yy)
+  yy <- sprintf("%02d", data_year %% 100)
+  
+  if (is.null(table_name)) {
+    table_name <- paste0(table_prefix, "_", yy)
+  }
 
  # default description if not provided
  if (is.null(data_description)) {
@@ -754,7 +758,15 @@ cupc_k12_export_dims <- function(dims,
    }
 
    # Build year-specific table name and description
-   table_name <- paste0(specs[[name]]$table_name, "_", yy)
+   base_name <- specs[[name]]$table_name
+   suffix <- specs[[name]]$suffix
+   
+   if (base_name == "dim") {
+     table_name <- paste0("dim", yy, "_", suffix)
+   } else {
+     table_name <- paste0(base_name, "_", yy, "_", suffix)
+   }
+   
    description <- paste0(specs[[name]]$description, " ", data_year)
 
    # If do_export = TRUE, write the dimension table to the OCDE server
@@ -841,7 +853,7 @@ run_cupc_k12_year_level <- function(start_year,
   
   # Step 6.1: Export flat CSV for local use
   yy <- sprintf("%02d", data_year %% 100)
-  level_label <- ifelse(level == "LEA", "lea", "school")
+  level_label <- ifelse(level == "LEA", "LEA", "school")
   
   flat_csv_name <- paste0("cupc_k12_", level_label, "_", yy, "_clean.csv")
   flat_csv_path <- file.path(processed_dir, flat_csv_name)
@@ -860,8 +872,8 @@ run_cupc_k12_year_level <- function(start_year,
   # Step 6.4b: Save local copy of fact table for QC/review
   fact_local_name <- ifelse(
     level == "LEA",
-    paste0("cupc_k12_", yy, "_fact.csv"),
-    paste0("cupc_k12_school_", yy, "_fact.csv")
+    paste0("cupc_k12_", yy, ".csv"),
+    paste0("cupc_k12_", yy, "_school_fact.csv")
   )
   fact_local_path <- file.path(final_local_dir, fact_local_name)
   data.table::fwrite(df_fact, fact_local_path)
@@ -871,7 +883,41 @@ run_cupc_k12_year_level <- function(start_year,
   
   for (dim_name in names(dims)) {
     if (!is.null(dims[[dim_name]])) {
-      dim_file_name <- paste0("cupck12_", level_label, "_", dim_name, "_", yy, ".csv")
+      
+      if (level == "LEA") {
+        dim_file_name <- switch(
+          dim_name,
+          entities = paste0("cupck12_", yy, "_entities.csv"),
+          districts = paste0("cupck12_", yy, "_districts.csv"),
+          schools = paste0("cupck12_", yy, "_schools.csv"),
+          school_type = paste0("dim", yy, "_cupck12_school_type.csv"),
+          ed_option_type = paste0("dim", yy, "_cupck12_ed_option_type.csv"),
+          nslp_status = paste0("dim", yy, "_cupck12_nslp_status.csv"),
+          charter_funding = paste0("dim", yy, "_cupck12_charter_funding.csv"),
+          charter = paste0("dim", yy, "_cupck12_charter.csv"),
+          irc = paste0("dim", yy, "_cupck12_irc.csv"),
+          low_grade = paste0("dim", yy, "_cupck12_low_grade.csv"),
+          high_grade = paste0("dim", yy, "_cupck12_high_grade.csv"),
+          calpads_fall1_cert = paste0("dim", yy, "_cupck12_calpads_fall1_cert.csv")
+        )
+      } else {
+        dim_file_name <- switch(
+          dim_name,
+          entities = paste0("cupck12_school_", yy, "_entities.csv"),
+          districts = paste0("cupck12_school_", yy, "_districts.csv"),
+          schools = paste0("cupck12_school_", yy, "_schools.csv"),
+          school_type = paste0("dim", yy, "_cupck12_school_school_type.csv"),
+          ed_option_type = paste0("dim", yy, "_cupck12_school_ed_option_type.csv"),
+          nslp_status = paste0("dim", yy, "_cupck12_school_nslp_status.csv"),
+          charter_funding = paste0("dim", yy, "_cupck12_school_charter_funding.csv"),
+          charter = paste0("dim", yy, "_cupck12_school_charter.csv"),
+          irc = paste0("dim", yy, "_cupck12_school_irc.csv"),
+          low_grade = paste0("dim", yy, "_cupck12_school_low_grade.csv"),
+          high_grade = paste0("dim", yy, "_cupck12_school_high_grade.csv"),
+          calpads_fall1_cert = paste0("dim", yy, "_cupck12_school_calpads_fall1_cert.csv")
+        )
+      }
+      
       dim_file_path <- file.path(final_local_dir, dim_file_name)
       data.table::fwrite(dims[[dim_name]], dim_file_path)
       dim_local_paths[[dim_name]] <- dim_file_path
@@ -886,9 +932,16 @@ run_cupc_k12_year_level <- function(start_year,
       stop("specs must be provided when run_final_export = TRUE")
     }
     
+    fact_table_name <- if (level == "LEA") {
+      paste0("cupc_k12_", yy)
+    } else {
+      paste0("cupc_k12_", yy, "_school_fact")
+    }
+    
     cupc_k12_fact_export(
       df_fact = df_fact,
       data_year = data_year,
+      table_name = fact_table_name,
       do_export = TRUE
     )
     
