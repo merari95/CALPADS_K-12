@@ -796,6 +796,7 @@ run_cupc_k12_year_level <- function(start_year,
                                     level = c("LEA", "School"),
                                     raw_dir,
                                     processed_dir,
+                                    final_local_dir,
                                     validate_dummies = FALSE,
                                     verbose = TRUE,
                                     run_final_export = FALSE,
@@ -856,6 +857,28 @@ run_cupc_k12_year_level <- function(start_year,
   # Step 6.4a: Validate dimension table primary keys
   cupc_k12_validate_dims(dims, full_run = TRUE)
   
+  # Step 6.4b: Save local copy of fact table for QC/review
+  fact_local_name <- ifelse(
+    level == "LEA",
+    paste0("cupc_k12_", yy, "_fact.csv"),
+    paste0("cupc_k12_school_", yy, "_fact.csv")
+  )
+  fact_local_path <- file.path(final_local_dir, fact_local_name)
+  data.table::fwrite(df_fact, fact_local_path)
+  
+  # Step 6.4c: Save local copies of dimension tables for QC/review
+  dim_local_paths <- list()
+  
+  for (dim_name in names(dims)) {
+    if (!is.null(dims[[dim_name]])) {
+      dim_file_name <- paste0("cupck12_", level_label, "_", dim_name, "_", yy, ".csv")
+      dim_file_path <- file.path(final_local_dir, dim_file_name)
+      data.table::fwrite(dims[[dim_name]], dim_file_path)
+      dim_local_paths[[dim_name]] <- dim_file_path
+    }
+  }
+  
+  
   # Step 6.5: Final export to OCDE server
   # run_final_export controls whether final OCDE server export happens
   if (run_final_export) {
@@ -888,6 +911,8 @@ run_cupc_k12_year_level <- function(start_year,
     fact = df_fact,
     dims = dims,
     suppression_cols = suppression_cols,
-    flat_csv_path = flat_csv_path
+    flat_csv_path = flat_csv_path,
+    fact_local_path = fact_local_path,
+    dim_local_paths = dim_local_paths
   )
 }
