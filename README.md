@@ -1,9 +1,3 @@
----
-editor_options: 
-  markdown: 
-    wrap: 72
----
-
 # CALPADS K-12 UPC Pipeline (Refactored)
 
 **Author:** Merari Santana-Carbajal
@@ -14,9 +8,7 @@ editor_options:
 
 ## Overview
 
-This project refactors the original CALPADS K-12 UPC processing script
-into a reproducible pipeline that processes multiple academic years and
-both reporting levels (LEA and School) automatically.
+This project refactors the original CALPADS K-12 UPC processing script into a reproducible pipeline that processes multiple academic years and both reporting levels (LEA and School) automatically.
 
 The pipeline:
 
@@ -28,8 +20,7 @@ The pipeline:
 6.  Validates primary keys
 7.  Optionally exports tables to the OCDE server
 
-The script is designed so that future CALPADS UPC releases can be
-processed with minimal changes.
+The script is designed so that future CALPADS UPC releases can be processed with minimal changes.
 
 ## Project Structure
 
@@ -48,8 +39,7 @@ CALPADS_K-12/
 
 ## How to Run the Pipeline
 
-The datasets required to run the pipeline are already included in the
-`data/raw/` folder.
+The datasets required to run the pipeline are already included in the `data/raw/` folder.
 
 To run the pipeline:
 
@@ -89,8 +79,7 @@ to:
 run_final_export <- TRUE
 ```
 
-When enabled, the pipeline writes fact and dimension tables to the OCDE
-server using `safe_fwrite().`
+When enabled, the pipeline writes fact and dimension tables to the OCDE server using `safe_fwrite().`
 
 ## How to Add a New Year
 
@@ -124,15 +113,11 @@ Example:
 years <- 2019:2026
 ```
 
-**Note:** The `years` variable represents the **starting academic year**
-(e.g., 2026 corresponds to the 2026–2027 academic year). The pipeline
-internally adds one year to generate the final reporting year.
+**Note:** The `years` variable represents the **starting academic year** (e.g., 2026 corresponds to the 2026–2027 academic year). The pipeline internally adds one year to generate the final reporting year.
 
 **Step 2a: Running a Single Year (Optional)**
 
-If you only want to process **one academic year** (for example, when
-adding a new release) you can modify the `years` variable to include
-only that year.
+If you only want to process **one academic year** (for example, when adding a new release) you can modify the `years` variable to include only that year.
 
 Example:
 
@@ -140,8 +125,7 @@ Example:
 years <- 2026
 ```
 
-This will run the pipeline only for the **2026–2027 academic year** and
-prevent re-processing or overwriting outputs for previous years.
+This will run the pipeline only for the **2026–2027 academic year** and prevent re-processing or overwriting outputs for previous years.
 
 **Step 3**
 
@@ -163,8 +147,7 @@ No additional code changes are required.
 
 ### Reproducible Pipeline
 
-The original script processed **one academic year at a time** and
-required manual editing of file paths and variables.
+The original script processed **one academic year at a time** and required manual editing of file paths and variables.
 
 This refactored pipeline:
 
@@ -184,8 +167,7 @@ The refactored pipeline uses:
 here::here()
 ```
 
-instead of hard-coded working directories, allowing the script to run
-from the project root without modifying paths.
+instead of hard-coded working directories, allowing the script to run from the project root without modifying paths.
 
 ### Modular Functions
 
@@ -205,8 +187,7 @@ This improves:
 
 ## Changes to Recoding Logic
 
-Several recoding rules were updated to improve robustness and
-consistency across years.
+Several recoding rules were updated to improve robustness and consistency across years.
 
 ### School Type
 
@@ -242,12 +223,9 @@ The NSLP coding scheme was standardized to include all known categories:
 | Provision 3           | 6               |
 | Not Participating     | 7               |
 
-In the original scripts, "Provision 1" was not included, which caused
-"Provision 2" to be coded as 4.
+In the original scripts, "Provision 1" was not included, which caused "Provision 2" to be coded as 4.
 
-Including "Provision 1" ensures the coding scheme is **complete** and
-**consistent** **across** **years**, even when certain categories are
-absent in a dataset.
+Including "Provision 1" ensures the coding scheme is **complete** and **consistent** **across** **years**, even when certain categories are absent in a dataset.
 
 ### High Grade
 
@@ -265,8 +243,7 @@ Two additional dimensions are now exported to the OCDE server:
 
 -   `charter`
 
-These dimensions were created in the original script but were not
-included in the export section.
+These dimensions were created in the original script but were not included in the export section.
 
 Dimension descriptions were also slightly standardized for clarity.
 
@@ -280,5 +257,4 @@ data/final_local/
 
 for verification before exporting to the OCDE server.
 
-Export previews are printed during runtime so table names and metadata
-can be reviewed before enabling server export.
+Export previews are printed during runtime so table names and metadata can be reviewed before enabling server export.
