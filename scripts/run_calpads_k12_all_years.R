@@ -3,7 +3,7 @@
 # =========================================
 # Author: Merari Santana-Carbajal
 # Organization: Orange County Department of Education
-# Last Updated: 03/08/26
+# Last Updated: 03/10/26
 
 # This script sources reusable functions and runs the full CALPADS K-12
 # pipeline for each requested academic year and level (LEA and School).
@@ -180,20 +180,20 @@ for (yr in years) {
     #   cupc_k12_19
     #
     # Example School fact table name pattern:
-    #   cupc_k12_school_fact_19
+    #   cupc_k12_19_school_fact
     #
     if (lvl == "LEA") {
       cupc_k12_fact_export(
         df_fact = results[[run_name]]$fact,
         data_year = data_year,
-        table_prefix = "cupc_k12",
+        table_name = paste0("cupc_k12_", sprintf("%02d", data_year %% 100)),
         do_export = FALSE
       )
     } else {
       cupc_k12_fact_export(
         df_fact = results[[run_name]]$fact,
         data_year = data_year,
-        table_prefix = "cupc_k12_school_fact",
+        table_name = paste0("cupc_k12_", sprintf("%02d", data_year %% 100), "_school_fact"),
         do_export = FALSE
       )
     }
