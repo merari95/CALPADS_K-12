@@ -34,6 +34,7 @@ read_cupc_k12 <- function(start_year,
                           show_str = FALSE,
                           show_view = FALSE) {
   level <- match.arg(level)
+  
   # If level equals "LEA" -> use "LEA-Level CALPADS UPC Data"
   # Otherwise -> use "School-Level CALPADS UPC Data"
   sheet_name <- ifelse(level == "LEA",
@@ -808,13 +809,18 @@ run_cupc_k12_year_level <- function(start_year,
                                     level = c("LEA", "School"),
                                     raw_dir,
                                     processed_dir,
-                                    final_local_dir,
+                                    fact_local_dir,
+                                    dim_local_dir,
                                     validate_dummies = FALSE,
                                     verbose = TRUE,
                                     run_final_export = FALSE,
                                     specs = NULL) {
   
   level <- match.arg(level)
+  
+  if (!dir.exists(processed_dir)) dir.create(processed_dir, recursive = TRUE)
+  if (!dir.exists(fact_local_dir)) dir.create(fact_local_dir, recursive = TRUE)
+  if (!dir.exists(dim_local_dir)) dir.create(dim_local_dir, recursive = TRUE)
   
   # ending academic year used in export/file naming
   data_year <- start_year + 1
@@ -875,7 +881,7 @@ run_cupc_k12_year_level <- function(start_year,
     paste0("cupc_k12_", yy, ".csv"),
     paste0("cupc_k12_", yy, "_school_fact.csv")
   )
-  fact_local_path <- file.path(final_local_dir, fact_local_name)
+  fact_local_path <- file.path(fact_local_dir, fact_local_name)
   data.table::fwrite(df_fact, fact_local_path)
   
   # Step 6.4c: Save local copies of dimension tables for QC/review
@@ -918,7 +924,7 @@ run_cupc_k12_year_level <- function(start_year,
         )
       }
       
-      dim_file_path <- file.path(final_local_dir, dim_file_name)
+      dim_file_path <- file.path(dim_local_dir, dim_file_name)
       data.table::fwrite(dims[[dim_name]], dim_file_path)
       dim_local_paths[[dim_name]] <- dim_file_path
     }

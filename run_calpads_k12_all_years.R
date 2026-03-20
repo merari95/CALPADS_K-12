@@ -45,11 +45,14 @@ years <- 2019:2023
 
 raw_dir <- here::here("data", "raw")
 processed_dir <- here::here("data", "processed")
-final_local_dir <- here::here("data", "final_local")
+
+fact_local_dir <- here::here("data", "fact_tables")
+dim_local_dir <- here::here("data", "dimension_tables")
 
 
 if (!dir.exists(processed_dir)) dir.create(processed_dir, recursive = TRUE)
-if (!dir.exists(final_local_dir)) dir.create(final_local_dir, recursive = TRUE)
+if (!dir.exists(fact_local_dir)) dir.create(fact_local_dir, recursive = TRUE)
+if (!dir.exists(dim_local_dir)) dir.create(dim_local_dir, recursive = TRUE)
 
 # =========================================
 # Dimension export specifications
@@ -133,7 +136,8 @@ for (yr in years) {
       level = lvl,
       raw_dir = raw_dir,
       processed_dir = processed_dir,
-      final_local_dir = final_local_dir,
+      fact_local_dir = fact_local_dir,
+      dim_local_dir = dim_local_dir,
       validate_dummies = TRUE,
       verbose = TRUE,
       run_final_export = run_final_export,
