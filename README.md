@@ -35,7 +35,7 @@ CALPADS_K-12/
 ├─ data/
 │   ├─ raw/                 # Raw CALPADS UPC Excel files
 │   ├─ processed/           # Clean flat CSV outputs
-│   └─ dimension_tables/    # Dimension tables saved locally
+│   ├─ dimension_tables/    # Dimension tables saved locally
 │   └─ fact_tables/         # Fact tables saved locally
 ```
 
