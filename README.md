@@ -276,12 +276,18 @@ Dimension descriptions were also slightly standardized for clarity.
 
 ## Notes
 
-Local copies of fact and dimension tables are saved to:
+Local copies of dimension and fact tables are saved to:
 
 ```         
-data/final_local/
+data/dimension_tables/
 ```
 
-for verification before exporting to the OCDE server.
+and
+
+```         
+data/fact_tables/
+```
+
+respectively, for verification before exporting to the OCDE server.
 
 Export previews are printed during runtime so table names and metadata can be reviewed before enabling server export.
