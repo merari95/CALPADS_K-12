@@ -33,9 +33,10 @@ CALPADS_K-12/
 │   └─ calpads_k12_functions.R
 │
 ├─ data/
-│   ├─ raw/            # Raw CALPADS UPC Excel files
-│   ├─ processed/      # Clean flat CSV outputs
-│   └─ final_local/    # Fact and dimension tables saved locally
+│   ├─ raw/                 # Raw CALPADS UPC Excel files
+│   ├─ processed/           # Clean flat CSV outputs
+│   └─ dimension_tables/    # Dimension tables saved locally
+│   └─ fact_tables/         # Fact tables saved locally
 ```
 
 ## How to Run the Pipeline
