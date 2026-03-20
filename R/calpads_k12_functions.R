@@ -215,6 +215,57 @@ validate_recode <- function(df, orig, coded) {
   str(df[[coded]])
 }
 
+
+# Helper for strict validation of recoding.
+# Checks whether any non-missing values in the original categorical variable
+# failed to get mapped to a numeric/dummy value (i.e., became NA after recoding).
+# This helps catch:
+# - new categories in later years
+# - typos in case_when()
+# - incomplete recoding logic
+#
+# If fail_on_unmapped = TRUE → stops the script
+# If FALSE → prints a warning instead
+validate_recode_strict <- function(df, orig, coded, fail_on_unmapped = FALSE) {
+  
+  # If either column does not exist, skip silently
+  if (!all(c(orig, coded) %in% names(df))) return(invisible(NULL))
+  
+  # rows where original has a value but coded is NA
+  bad_rows <- df |>
+    dplyr::filter(!is.na(.data[[orig]]) & is.na(.data[[coded]]))
+  
+  # If any problematic rows are found
+  if (nrow(bad_rows) > 0) {
+    
+    # Extract the unique original values that failed to map
+    # so we know exactly which categories were missed
+    bad_values <- bad_rows |>
+      dplyr::distinct(.data[[orig]]) |>
+      dplyr::pull(.data[[orig]])
+    
+    # Create a readable message listing those unmapped values
+    msg <- paste0(
+      "Unmapped values detected in ", orig, ": ",
+      paste(bad_values, collapse = ", ")
+    )
+    
+    # Decide whether to stop execution or just warn
+    if (isTRUE(fail_on_unmapped)) {
+      stop(msg, call. = FALSE)
+    } else {
+      warning(msg, call. = FALSE)
+    }
+  } else {
+    # If no issues found, confirm that recoding was successful
+    message("Validation passed for ", orig, ": all non-missing values were recoded.")
+  }
+  
+  # Return nothing (used only for side effects like messages/warnings)
+  invisible(NULL)
+}
+
+
 # Step 4.2: Dummy/coded versions of categorical variables
 # -------------------------------------------------------
 # cupc_k12_dummies : Recodes selected categorical CALPADS
@@ -230,8 +281,11 @@ validate_recode <- function(df, orig, coded) {
 #   were mapped correctly to their numeric versions.
 #
 # Example:
-# df <- cupc_k12_dummies(df, validate = TRUE, verbose = TRUE)
-cupc_k12_dummies <- function(df, validate = FALSE, verbose = TRUE) {
+# df <- cupc_k12_dummies(df, validate = TRUE, verbose = TRUE, fail_on_unmapped = TRUE)
+cupc_k12_dummies <- function(df, 
+                             validate = FALSE, 
+                             verbose = TRUE,
+                             fail_on_unmapped = FALSE) {
   stopifnot(is.data.frame(df))
   
   # helper: replace literal "N/A" with NA after coercing to character
@@ -243,8 +297,8 @@ cupc_k12_dummies <- function(df, validate = FALSE, verbose = TRUE) {
       dplyr::mutate(
         charter = naize(charter),
         charter_dummy = dplyr::case_when(
-          charter == "Yes" ~ 1L,
-          charter == "No" ~ 0L,
+          charter %in% c("Yes", "Y") ~ 1L,
+          charter %in% c("No", "N") ~ 0L,
           TRUE ~ NA_integer_
         )
       )
@@ -360,6 +414,7 @@ cupc_k12_dummies <- function(df, validate = FALSE, verbose = TRUE) {
           low_grade == "Adult" ~ 13L,
           low_grade == "K" ~ 14L,
           low_grade == "P" ~ 15L,
+          low_grade %in% c("Post Secondary", "Post-Secondary") ~ 16L,
           TRUE ~ NA_integer_
         )
       )
@@ -387,8 +442,8 @@ cupc_k12_dummies <- function(df, validate = FALSE, verbose = TRUE) {
     d |>
       dplyr::mutate(
         calpads_fall1_cert_num = dplyr::case_when(
-          as.character(calpads_fall1_cert) ==
-            "In Expected List But We Do Not Have Data For This School/LEA" ~ 0L,
+          as.character(calpads_fall1_cert) %in% 
+            c("In Expected List But We Do Not Have Data For This School/LEA", "N") ~ 0L,
           as.character(calpads_fall1_cert) == "Y" ~ 1L,
           TRUE ~ NA_integer_
         )
@@ -428,6 +483,16 @@ cupc_k12_dummies <- function(df, validate = FALSE, verbose = TRUE) {
     validate_recode(df, "low_grade", "low_grade_num")
     validate_recode(df, "high_grade", "high_grade_num")
     validate_recode(df, "calpads_fall1_cert", "calpads_fall1_cert_num")
+    
+    validate_recode_strict(df, "charter", "charter_dummy", fail_on_unmapped = fail_on_unmapped)
+    validate_recode_strict(df, "school_type", "school_type_num", fail_on_unmapped = fail_on_unmapped)
+    validate_recode_strict(df, "ed_option_type", "ed_option_type_num", fail_on_unmapped = fail_on_unmapped)
+    validate_recode_strict(df, "nslp_status", "nslp_status_num", fail_on_unmapped = fail_on_unmapped)
+    validate_recode_strict(df, "charter_funding", "charter_funding_num", fail_on_unmapped = fail_on_unmapped)
+    validate_recode_strict(df, "irc", "irc_num", fail_on_unmapped = fail_on_unmapped)
+    validate_recode_strict(df, "low_grade", "low_grade_num", fail_on_unmapped = fail_on_unmapped)
+    validate_recode_strict(df, "high_grade", "high_grade_num", fail_on_unmapped = fail_on_unmapped)
+    validate_recode_strict(df, "calpads_fall1_cert", "calpads_fall1_cert_num", fail_on_unmapped = fail_on_unmapped)
   }
   
   df
@@ -812,6 +877,7 @@ run_cupc_k12_year_level <- function(start_year,
                                     fact_local_dir,
                                     dim_local_dir,
                                     validate_dummies = FALSE,
+                                    fail_on_unmapped = TRUE,
                                     verbose = TRUE,
                                     run_final_export = FALSE,
                                     specs = NULL) {
@@ -848,7 +914,8 @@ run_cupc_k12_year_level <- function(start_year,
   df <- cupc_k12_dummies(
     df,
     validate = validate_dummies,
-    verbose = verbose
+    verbose = verbose,
+    fail_on_unmapped = fail_on_unmapped
   )
   
   # Step 4.3: Standardize academic year

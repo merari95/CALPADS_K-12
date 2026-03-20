@@ -539,7 +539,7 @@ year,county_code,district_code,school_code,county_name,district_name,school_name
 20,19,64709,0000000,Los Angeles,Lennox,,Elementary School District,,,,,,,,,,4918,4505,14,544,0,2138,4563,2210,4691,Y,,,,,,,,,1,19647090000000
 20,19,64709,0100602,Los Angeles,Lennox,"Lennox Mathematics, Science and Technology Academy",Elementary School District,High Schools (Public),Traditional,Provision 2,Yes,0509,Directly funded,Y,9,12,579,484,0,7,0,227,499,55,507,Y,1,7,10,5,1,1,9,12,1,19647090100602
 20,19,64709,0107508,Los Angeles,Lennox,Century Community Charter,Elementary School District,Intermediate/Middle Schools (Public),Traditional,,Yes,0672,Directly funded,Y,6,8,448,375,1,0,0,205,383,98,399,Y,1,9,10,,1,1,6,8,1,19647090107508
-20,19,64709,0112250,Los Angeles,Lennox,Century Academy for Excellence,Elementary School District,Intermediate/Middle Schools (Public),Traditional,,Yes,0809,Directly funded,Y,6,8,0,0,0,0,0,0,0,0,0,N,1,9,10,,1,1,6,8,,19647090112250
+20,19,64709,0112250,Los Angeles,Lennox,Century Academy for Excellence,Elementary School District,Intermediate/Middle Schools (Public),Traditional,,Yes,0809,Directly funded,Y,6,8,0,0,0,0,0,0,0,0,0,N,1,9,10,,1,1,6,8,0,19647090112250
 20,19,64709,1996313,Los Angeles,Lennox,Animo Leadership High,Elementary School District,High Schools (Public),Traditional,,Yes,0281,Directly funded,Y,9,12,632,551,1,19,0,254,551,79,559,Y,1,7,10,,1,1,9,12,1,19647091996313
 20,19,64717,0000000,Los Angeles,Little Lake City Elementary,,Elementary School District,,,,,,,,,,4283,2901,45,281,0,1382,2915,557,3029,Y,,,,,,,,,1,19647170000000
 20,19,64725,0000000,Los Angeles,Long Beach Unified,,Unified School District,,,,,,,,,,71537,44350,449,5402,221,28083,46585,10256,48088,Y,,,,,,,,,1,19647250000000
@@ -1038,7 +1038,7 @@ year,county_code,district_code,school_code,county_name,district_name,school_name
 20,27,66225,0000000,Monterey,Spreckels Union Elementary,,Elementary School District,,,,,,,,,,996,157,0,2,1,111,159,53,177,Y,,,,,,,,,1,27662250000000
 20,27,66233,0000000,Monterey,Washington Union Elementary,,Elementary School District,,,,,,,,,,880,74,0,1,0,76,84,28,103,Y,,,,,,,,,1,27662330000000
 20,27,73825,0000000,Monterey,North Monterey County Unified,,Unified School District,,,,,,,,,,4593,3769,10,994,207,2144,3790,1846,3936,Y,,,,,,,,,1,27738250000000
-20,27,75150,0000000,Monterey,Big Sur Unified,,Unified School District,,,,,,,,,,0,0,0,0,0,0,0,0,0,N,,,,,,,,,,27751500000000
+20,27,75150,0000000,Monterey,Big Sur Unified,,Unified School District,,,,,,,,,,0,0,0,0,0,0,0,0,0,N,,,,,,,,,0,27751500000000
 20,27,75150,0118349,Monterey,Big Sur Unified,Big Sur Charter,Unified School District,K-12 Schools (Public),Traditional,,Yes,1000,Directly funded,Y,K,12,82,8,0,0,0,13,17,3,18,Y,1,12,10,,1,1,14,12,1,27751500118349
 20,27,75440,0000000,Monterey,Soledad Unified,,Unified School District,,,,,,,,,,4871,4373,3,106,162,2297,4417,1551,4500,Y,,,,,,,,,1,27754400000000
 20,27,75473,0000000,Monterey,Gonzales Unified,,Unified School District,,,,,,,,,,2340,1644,8,305,203,947,1957,906,2061,Y,,,,,,,,,1,27754730000000
@@ -1906,7 +1906,7 @@ year,county_code,district_code,school_code,county_name,district_name,school_name
 20,45,73700,0000000,Shasta,Mountain Union Elementary,,Elementary School District,,,,,,,,,,71,60,0,0,0,35,60,0,60,Y,,,,,,,,,1,45737000000000
 20,45,75267,0000000,Shasta,Gateway Unified,,Unified School District,,,,,,,,,,2249,1630,27,18,0,1263,1645,49,1648,Y,,,,,,,,,1,45752670000000
 20,45,75267,0113407,Shasta,Gateway Unified,Rocky Point Charter,Unified School District,Elementary Schools (Public),Traditional,,Yes,0849,Directly funded,Y,K,8,161,90,4,6,0,62,91,1,91,Y,1,6,10,,1,1,14,8,1,45752670113407
-20,46,10462,0000000,Sierra,Sierra County Office of Education,,County Office of Education (COE),,,,,,,,,,0,0,0,0,0,0,0,0,0,N,,,,,,,,,,46104620000000
+20,46,10462,0000000,Sierra,Sierra County Office of Education,,County Office of Education (COE),,,,,,,,,,0,0,0,0,0,0,0,0,0,N,,,,,,,,,0,46104620000000
 20,46,70177,0000000,Sierra,Sierra-Plumas Joint Unified,,Unified School District,,,,,,,,,,430,126,2,15,0,122,199,13,202,Y,,,,,,,,,1,46701770000000
 20,47,10470,0000000,Siskiyou,Siskiyou County Office of Education,,County Office of Education (COE),,,,,,,,,,100,36,1,1,0,35,46,0,48,Y,,,,,,,,,1,47104700000000
 20,47,10470,0117168,Siskiyou,Siskiyou County Office of Education,Golden Eagle Charter,County Office of Education (COE),K-12 Schools (Public),Traditional,,Yes,0983,Directly funded,Y,K,12,493,321,1,5,0,256,354,3,354,Y,1,12,10,,1,1,14,12,1,47104700117168
