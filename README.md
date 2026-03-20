@@ -15,10 +15,11 @@ The pipeline:
 1.  Reads raw CALPADS UPC Excel files
 2.  Standardizes variable names and data types
 3.  Creates coded/dummy variables
-4.  Generates a cleaned flat CSV
-5.  Builds fact and dimension tables
-6.  Validates primary keys
-7.  Optionally exports tables to the OCDE server
+4.  Includes strict validation checks that halt execution when unmapped or inconsistent category recoding is detected
+5.  Generates a cleaned flat CSV
+6.  Builds fact and dimension tables
+7.  Validates primary keys
+8.  Optionally exports tables to the OCDE server
 
 The script is designed so that future CALPADS UPC releases can be processed with minimal changes.
 
@@ -234,6 +235,31 @@ c("Post Secondary", "Post-Secondary") → 15
 ```
 
 -   Handles both label variations.
+
+### CALPADS Fall 1 Certification
+
+```         
+"N" and "In Expected List But We Do Not Have Data For This School/LEA" → 0
+```
+
+-   Handles both label variations.
+
+### Charter
+
+```         
+charter %in% c("Yes", "Y") → 1
+charter %in% c("No", "N") → 0
+```
+
+-   Handles different label variations.
+
+### Low Grade
+
+```         
+low_grade %in% c("Post Secondary", "Post-Secondary") → 16
+```
+
+-   Added to handle cases appearing in newer datasets.
 
 ## Dimension Table Updates
 
